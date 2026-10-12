@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Settlement Process — Governance & Control Dashboard</title>
+<style>
+  :root{
+    --bg:#0f1420; --panel:#161d2e; --panel2:#1d2740; --ink:#e8edf6; --muted:#9aa7c0;
+    --line:#2a3550; --accent:#4f9dff; --good:#36c08a; --warn:#f2b84b; --bad:#ef5f6b;
+    --purple:#9b7bff; --teal:#36c0bf;
+    --shadow:0 6px 22px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,#0d1119,#0f1420 240px);color:var(--ink);
+    font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.5;}
+  header{padding:28px 32px 18px;border-bottom:1px solid var(--line);}
+  header h1{margin:0 0 4px;font-size:24px;letter-spacing:.2px}
+  header p{margin:0;color:var(--muted);max-width:980px;font-size:14px}
+  .wrap{padding:24px 32px 60px;max-width:1320px;margin:0 auto}
+  .section-title{font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);
+    margin:34px 0 12px;font-weight:700;border-left:3px solid var(--accent);padding-left:10px}
+  .why{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--purple);
+    border-radius:8px;padding:11px 14px;margin:10px 0 20px;font-size:13px;color:#cdd6ea}
+  .why b{color:#fff}
+  .grid{display:grid;gap:16px}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:1050px){.g4,.g3,.g2{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:640px){.g4,.g3,.g2{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+  .kpi .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+  .kpi .value{font-size:30px;font-weight:700;margin:6px 0 2px}
+  .kpi .sub{font-size:12px;color:var(--muted)}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;margin-top:8px}
+  .p-good{background:rgba(54,192,138,.16);color:var(--good)}
+  .p-warn{background:rgba(242,184,75,.16);color:var(--warn)}
+  .p-bad{background:rgba(239,95,107,.16);color:var(--bad)}
+  .card h3{margin:0 0 2px;font-size:15px}
+  .card .hint{color:var(--muted);font-size:12px;margin:0 0 10px}
+  svg{display:block;width:100%;height:auto}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:8px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;text-transform:uppercase;font-size:11px;letter-spacing:.5px}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px}
+  .t-red{background:rgba(239,95,107,.16);color:var(--bad)}
+  .t-amb{background:rgba(242,184,75,.16);color:var(--warn)}
+  .t-grn{background:rgba(54,192,138,.16);color:var(--good)}
+  .funnelrow{display:grid;grid-template-columns:170px 1fr 120px;align-items:center;gap:12px;margin:8px 0}
+  .funnelrow .name{font-size:13px}
+  .bar{height:26px;border-radius:6px;background:linear-gradient(90deg,var(--accent),var(--teal))}
+  .bar.drop{background:linear-gradient(90deg,#3b4b6e,#2a3550)}
+  .fnum{text-align:right;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .alert{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:9px;margin:8px 0;
+    border:1px solid var(--line);background:var(--panel2)}
+  .alert .sev{font-size:11px;font-weight:800;padding:3px 8px;border-radius:6px;white-space:nowrap;margin-top:1px}
+  .alert .body{font-size:13px}
+  .alert .body b{color:#fff}
+  .foot{color:var(--muted);font-size:12px;margin-top:40px;border-top:1px solid var(--line);padding-top:16px}
+  code{background:#0c1017;padding:1px 6px;border-radius:5px;color:#cfe0ff;font-size:12px}
+  .flowmap{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;margin:4px 0 2px}
+  .node{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;text-align:center;min-width:92px}
+  .node small{display:block;color:var(--muted);font-size:10px}
+  .arrow{color:var(--muted);font-size:18px}
+  .sys{font-size:10px;font-weight:700;padding:1px 6px;border-radius:5px;margin-left:4px}
+  .sys-indus{background:rgba(155,123,255,.18);color:var(--purple)}
+  .sys-lms{background:rgba(54,192,191,.18);color:var(--teal)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Settlement Process — Governance &amp; Control Dashboard</h1>
+  <p>End-to-end monitoring of the settlement lifecycle across <b>Indus</b> (settlement workflow) and <b>LMS</b> (payments &amp; SOA).
+  Every panel below includes a short note on <i>why it matters</i> so the control room knows what gap it is designed to catch. Figures shown are illustrative placeholders — wire each tile to your source query noted under it.</p>
+</header>
+
+<div class="wrap">
+
+  <!-- PROCESS MAP -->
+  <div class="section-title">Process map &amp; system boundary</div>
+  <div class="card">
+    <div class="flowmap">
+      <div class="node">Initiation<small>consent SMS <span class="sys sys-indus">Indus</span></small></div>
+      <span class="arrow">→</span>
+      <div class="node">Consent<small>digital / manual QC</small></div>
+      <span class="arrow">→</span>
+      <div class="node">Recommendation<small>higher authority</small></div>
+      <span class="arrow">→</span>
+      <div class="node">Approval<small>flag → <span class="sys sys-lms">LMS</span></small></div>
+      <span class="arrow">→</span>
+      <div class="node">Payment<small>collect &amp; match</small></div>
+      <span class="arrow">→</span>
+      <div class="node">Matched<small>flag → <span class="sys sys-lms">LMS</span></small></div>
+      <span class="arrow">→</span>
+      <div class="node">Settled &amp; Closed<small>SOA generated</small></div>
+    </div>
+    <div class="flowmap" style="margin-top:6px">
+      <div class="node" style="border-color:#5a2b33">Withdraw<small>allowed pre-approval only</small></div>
+      <span class="arrow">↘</span>
+      <div class="node" style="border-color:#5a4a2b">Void<small>no pay by +45d → close &amp; adjust</small></div>
+      <span class="arrow">↺</span>
+      <div class="node">Re-initiate<small>back to start</small></div>
+    </div>
+    <div class="why" style="margin-top:14px"><b>Why it matters:</b> The hand-offs where a <b>flag crosses between Indus and LMS</b> (approval flag out, matched flag back) are the two single points of failure you flagged. Most "process not running right" incidents are a flag that fired late or never — so these two edges get their own control chart below.</div>
+  </div>
+
+  <!-- TOP KPIs -->
+  <div class="section-title">Executive health — at a glance</div>
+  <div class="grid g4">
+    <div class="card kpi">
+      <div class="label">Flag sync lag (Indus↔LMS)</div>
+      <div class="value">6.4 <span style="font-size:14px;color:var(--muted)">hrs avg</span></div>
+      <div class="sub">SLA ≤ 2 hrs • 23 cases breached</div>
+      <span class="pill p-bad">Out of control</span>
+    </div>
+    <div class="card kpi">
+      <div class="label">Consent SMS delivery (dual-number)</div>
+      <div class="value">91.2%</div>
+      <div class="sub">of required numbers reached</div>
+      <span class="pill p-warn">Watch</span>
+    </div>
+    <div class="card kpi">
+      <div class="label">Approval → settled cycle time</div>
+      <div class="value">21 <span style="font-size:14px;color:var(--muted)">days median</span></div>
+      <div class="sub">Target ≤ 30 • within void window</div>
+      <span class="pill p-good">In control</span>
+    </div>
+    <div class="card kpi">
+      <div class="label">Void rate (last 90d)</div>
+      <div class="value">11.7%</div>
+      <div class="sub">of approved settlements</div>
+      <span class="pill p-warn">Rising</span>
+    </div>
+  </div>
+
+  <!-- FUNNEL -->
+  <div class="section-title">Stage funnel &amp; conversion</div>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Settlement lifecycle funnel</h3>
+      <p class="hint">Volume reaching each stage this month, with stage-to-stage conversion.</p>
+      <div class="funnelrow"><div class="name">Initiated</div><div class="bar" style="width:100%"></div><div class="fnum">1,000 · 100%</div></div>
+      <div class="funnelrow"><div class="name">Consent captured</div><div class="bar" style="width:86%"></div><div class="fnum">860 · 86%</div></div>
+      <div class="funnelrow"><div class="name">Recommended</div><div class="bar" style="width:74%"></div><div class="fnum">740 · 86%</div></div>
+      <div class="funnelrow"><div class="name">Approved</div><div class="bar" style="width:66%"></div><div class="fnum">660 · 89%</div></div>
+      <div class="funnelrow"><div class="name">Fully paid / matched</div><div class="bar" style="width:52%"></div><div class="fnum">520 · 79%</div></div>
+      <div class="funnelrow"><div class="name">Settled &amp; closed (SOA)</div><div class="bar" style="width:50%"></div><div class="fnum">500 · 96%</div></div>
+      <div class="legend"><span><span class="dot" style="background:var(--accent)"></span>Progressed</span></div>
+    </div>
+    <div class="card">
+      <h3>Where cases leak out</h3>
+      <p class="hint">Exits at each stage — the governance team's "chase list".</p>
+      <div class="funnelrow"><div class="name">Consent not captured</div><div class="bar drop" style="width:14%"></div><div class="fnum">140</div></div>
+      <div class="funnelrow"><div class="name">Withdrawn (customer/agent)</div><div class="bar drop" style="width:12%"></div><div class="fnum">120</div></div>
+      <div class="funnelrow"><div class="name">Rejected at recommendation/approval</div><div class="bar drop" style="width:8%"></div><div class="fnum">80</div></div>
+      <div class="funnelrow"><div class="name">In excess (partial, awaiting full)</div><div class="bar drop" style="width:14%"></div><div class="fnum">140</div></div>
+      <div class="funnelrow"><div class="name">Voided (+45d no match)</div><div class="bar drop" style="width:2%"></div><div class="fnum">20</div></div>
+      <div class="why" style="margin-top:14px"><b>Why it matters:</b> A healthy funnel is not "everyone reaches settled". Withdrawals and rejections are legitimate exits; <b>stuck in excess</b> and <b>voids</b> are the leaks worth money. Watching conversion per stage tells you <i>where</i> to intervene instead of chasing the whole book.</div>
+    </div>
+  </div>
+
+  <!-- CONTROL CHART 1: FLAG SYNC -->
+  <div class="section-title">Control chart 1 — Indus↔LMS flag sync lag (the core risk)</div>
+  <div class="card">
+    <h3>Hours between event and flag reflected in the other system</h3>
+    <p class="hint">Statistical process control (SPC): centre line = mean, UCL/LCL = mean ± 3σ. Points above the Upper Control Limit are special-cause events to investigate, not noise.</p>
+    <div id="cc_flag"></div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--accent)"></span>Daily avg lag</span>
+      <span><span class="dot" style="background:var(--good)"></span>Centre line (mean)</span>
+      <span><span class="dot" style="background:var(--bad)"></span>UCL / LCL (±3σ)</span>
+      <span><span class="dot" style="background:var(--warn)"></span>SLA (2 hrs)</span>
+    </div>
+    <div class="why"><b>Why it matters:</b> You said flag-updation delay creates confusion and makes the process misbehave. This is the single most important chart. A point above UCL means a <b>systemic</b> sync problem (batch job stuck, queue backlog) — not a one-off — and should trigger a reconciliation sweep. Breaches that cluster near month-end usually point to a batch-window capacity issue.</div>
+  </div>
+
+  <!-- CONTROL CHART 2: CYCLE TIME -->
+  <div class="grid g2">
+    <div class="card">
+      <h3>Control chart 2 — Approval→Settled cycle time (days)</h3>
+      <p class="hint">Watch against the 45-day void threshold.</p>
+      <div id="cc_cycle"></div>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--purple)"></span>Median days</span>
+        <span><span class="dot" style="background:var(--bad)"></span>45d void threshold</span>
+      </div>
+      <div class="why"><b>Why it matters:</b> Any case whose cycle time drifts toward 45 days is a <b>void waiting to happen</b>. Flagging these early lets agents nudge the customer <i>before</i> the window closes and the paid amount gets adjusted against overdue.</div>
+    </div>
+    <div class="card">
+      <h3>Control chart 3 — Consent SMS coverage (dual-number rule)</h3>
+      <p class="hint">% of <i>required</i> unique numbers that received the SMS.</p>
+      <div id="cc_sms"></div>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--teal)"></span>Coverage %</span>
+        <span><span class="dot" style="background:var(--good)"></span>Target 100%</span>
+      </div>
+      <div class="why"><b>Why it matters:</b> Your rule: 1 SMS when applicant &amp; co-applicant numbers match, 2 when they differ. If the system silently sends one SMS to two distinct numbers, consent from the co-applicant is <b>never solicited</b> — a compliance and dispute risk. This chart tracks "SMS sent ÷ SMS required", so de-duplication bugs surface immediately.</div>
+    </div>
+  </div>
+
+  <!-- SMS LOGIC TABLE -->
+  <div class="section-title">Consent SMS — dual-number integrity check</div>
+  <div class="card">
+    <table>
+      <thead><tr><th>Scenario</th><th class="num">Cases</th><th>Required SMS</th><th class="num">Actually sent</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Applicant = Co-applicant number (or no co-applicant)</td><td class="num">612</td><td>1 each</td><td class="num">612</td><td><span class="tag t-grn">OK</span></td></tr>
+        <tr><td>Applicant ≠ Co-applicant (two unique numbers)</td><td class="num">388</td><td>2 each</td><td class="num">371</td><td><span class="tag t-amb">17 short</span></td></tr>
+        <tr><td>Co-applicant number missing in system</td><td class="num">94</td><td>1 (applicant)</td><td class="num">94</td><td><span class="tag t-grn">OK</span></td></tr>
+        <tr><td>Delivery failed / DND / invalid</td><td class="num">—</td><td>retry queue</td><td class="num">31</td><td><span class="tag t-red">Investigate</span></td></tr>
+      </tbody>
+    </table>
+    <div class="why"><b>Why it matters:</b> The "<b>17 short</b>" row is the exact de-dup bug to monitor: two distinct numbers but only one SMS fired. Reconcile <code>distinct_mobile_count</code> vs <code>sms_sent_count</code> per case daily; any case where sent &lt; required unique numbers is an auto-exception.</div>
+  </div>
+
+  <!-- MANUAL CONSENT / QC -->
+  <div class="section-title">Manual consent &amp; QC pipeline</div>
+  <div class="grid g3">
+    <div class="card kpi"><div class="label">Manual consent share</div><div class="value">18%</div><div class="sub">of all consents (B2B download route)</div></div>
+    <div class="card kpi"><div class="label">QC approval rate</div><div class="value">82%</div><div class="sub">18% sent back for re-work</div><span class="pill p-warn">Rework high</span></div>
+    <div class="card kpi"><div class="label">Avg QC turnaround</div><div class="value">1.9 days</div><div class="sub">upload → QC decision</div></div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>QC rejection reasons (manual consent)</h3>
+    <table>
+      <thead><tr><th>Reason</th><th class="num">Count</th><th class="num">Share</th><th>Action owner</th></tr></thead>
+      <tbody>
+        <tr><td>Signature mismatch / missing</td><td class="num">41</td><td class="num">34%</td><td>Field agent</td></tr>
+        <tr><td>Illegible / poor scan upload</td><td class="num">33</td><td class="num">27%</td><td>Field agent</td></tr>
+        <tr><td>Wrong / outdated consent form version</td><td class="num">26</td><td class="num">22%</td><td>Ops — form control</td></tr>
+        <tr><td>Third-party authorisation incomplete</td><td class="num">21</td><td class="num">17%</td><td>Field agent</td></tr>
+      </tbody>
+    </table>
+    <div class="why"><b>Why it matters:</b> Manual consent exists for customers who distrust digital links — but it is slow and error-prone. High rework (18%) silently stretches cycle time and pushes cases toward the void window. Tracking <i>reasons</i> turns a vague "QC is slow" complaint into a targeted fix (e.g. 22% is a stale-form problem Ops can kill at source).</div>
+  </div>
+
+  <!-- PAYMENT & EXCESS -->
+  <div class="section-title">Payment matching &amp; excess management</div>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Excess bucket ageing (partial payers awaiting full amount)</h3>
+      <p class="hint">Cases where customer has paid partially; balance sits in excess until it matches the agreed amount.</p>
+      <table>
+        <thead><tr><th>Days since approval</th><th class="num">Cases</th><th class="num">Excess held (₹L)</th><th>Risk</th></tr></thead>
+        <tbody>
+          <tr><td>0–15 days</td><td class="num">61</td><td class="num">38.2</td><td><span class="tag t-grn">On track</span></td></tr>
+          <tr><td>16–30 days</td><td class="num">44</td><td class="num">29.6</td><td><span class="tag t-amb">Nudge</span></td></tr>
+          <tr><td>31–45 days</td><td class="num">27</td><td class="num">21.1</td><td><span class="tag t-amb">Escalate</span></td></tr>
+          <tr><td>&gt; 45 days (void-eligible)</td><td class="num">8</td><td class="num">6.4</td><td><span class="tag t-red">Void risk</span></td></tr>
+        </tbody>
+      </table>
+      <div class="why"><b>Why it matters:</b> Money sitting in excess is neither settled nor adjusted — it is in limbo. Ageing it against the 45-day clock tells you which customers to call <i>today</i>. The last row is the leading indicator of next month's void volume.</div>
+    </div>
+    <div class="card">
+      <h3>Matching outcomes (LMS→Indus reconciliation)</h3>
+      <p class="hint">Each customer payment is matched against the agreed amount by Indus Collect.</p>
+      <div id="cc_match"></div>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--good)"></span>Matched → settled</span>
+        <span><span class="dot" style="background:var(--warn)"></span>Partial → excess</span>
+        <span><span class="dot" style="background:var(--bad)"></span>Unmatched / unidentified</span>
+      </div>
+      <div class="why"><b>Why it matters:</b> "Unmatched" payments (money received but not tied to a case) are the reconciliation blind spot NBFCs hit most. Each one risks a wrong void or a customer paying but not getting closed. Trend it weekly — a rising unmatched band means the matching rule or the LMS→Indus feed needs attention.</div>
+    </div>
+  </div>
+
+  <!-- WITHDRAWAL / VOID -->
+  <div class="section-title">Withdrawal &amp; void governance</div>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Withdrawals by stage (control: only valid pre-approval)</h3>
+      <table>
+        <thead><tr><th>Stage at withdrawal</th><th class="num">Count</th><th>Validity</th></tr></thead>
+        <tbody>
+          <tr><td>Post-initiation, pre-recommendation</td><td class="num">74</td><td><span class="tag t-grn">Allowed</span></td></tr>
+          <tr><td>Post-recommendation, pre-approval</td><td class="num">46</td><td><span class="tag t-grn">Allowed</span></td></tr>
+          <tr><td>Post-approval (should be blocked)</td><td class="num">3</td><td><span class="tag t-red">Breach</span></td></tr>
+        </tbody>
+      </table>
+      <div class="why"><b>Why it matters:</b> Withdrawal is a legitimate right <i>only before approval</i>. The "3 post-approval" row is a <b>hard control breach</b> — the system let someone withdraw after the settlement flag went to LMS. Each one needs a root-cause (permission bug, flag-lag race condition) because it can corrupt the LMS record.</div>
+    </div>
+    <div class="card">
+      <h3>Void reason split &amp; recovery</h3>
+      <table>
+        <thead><tr><th>Void reason</th><th class="num">Cases</th><th class="num">Re-initiated</th></tr></thead>
+        <tbody>
+          <tr><td>No payment within 45 days</td><td class="num">42</td><td class="num">19</td></tr>
+          <tr><td>Partial only, never reached full</td><td class="num">31</td><td class="num">14</td></tr>
+          <tr><td>Match flag delayed → false void</td><td class="num">7</td><td class="num">7</td></tr>
+        </tbody>
+      </table>
+      <div class="why"><b>Why it matters:</b> The last row is the painful one — a case voided <i>only because the match flag was late</i>, even though the customer actually paid. These are process failures, not customer failures, and should be zero. If this count is non-zero, the flag-sync control chart above is your root cause.</div>
+    </div>
+  </div>
+
+  <!-- EXCEPTION QUEUE -->
+  <div class="section-title">Live exception &amp; alert queue</div>
+  <div class="card">
+    <div class="alert"><div class="sev t-red">CRITICAL</div><div class="body"><b>3 post-approval withdrawals</b> detected this week — hard control breach. LMS settlement flag may be inconsistent. Route to Tech + Ops reconciliation.</div></div>
+    <div class="alert"><div class="sev t-red">CRITICAL</div><div class="body"><b>7 "false voids"</b> — payment received but match flag arrived after +45d. Reverse void and re-settle; audit the Indus Collect matching batch window.</div></div>
+    <div class="alert"><div class="sev t-amb">HIGH</div><div class="body"><b>23 cases breached the 2-hr flag SLA</b> (avg 6.4 hrs). Flag-sync control chart is above UCL — likely a stuck queue/batch, not noise.</div></div>
+    <div class="alert"><div class="sev t-amb">HIGH</div><div class="body"><b>17 dual-number cases got only one consent SMS.</b> Co-applicant consent not solicited — run the de-dup reconciliation and re-fire SMS.</div></div>
+    <div class="alert"><div class="sev t-amb">MED</div><div class="body"><b>8 cases in excess &gt; 45 days.</b> Void-eligible; attempt recovery call before auto-void runs.</div></div>
+    <div class="alert"><div class="sev t-grn">INFO</div><div class="body"><b>31 unmatched payments</b> pending identification in LMS→Indus feed. Assign to reconciliation desk.</div></div>
+    <div class="why"><b>Why it matters:</b> A dashboard that only shows trends is passive. This queue converts the charts into <b>a daily to-do list with owners</b>, so governance is action, not observation. Each alert maps to one of the controls above.</div>
+  </div>
+
+  <!-- METRIC DICTIONARY -->
+  <div class="section-title">Metric dictionary &amp; data sources (wire-up guide)</div>
+  <div class="card">
+    <table>
+      <thead><tr><th>Metric</th><th>Definition</th><th>Source join</th><th>Threshold / rule</th></tr></thead>
+      <tbody>
+        <tr><td>Flag sync lag</td><td>timestamp(flag in target system) − timestamp(event in source)</td><td>Indus event log ↔ LMS flag log on <code>loan_id</code></td><td>SLA ≤ 2 hrs; UCL = mean+3σ</td></tr>
+        <tr><td>Consent SMS coverage</td><td>SMS sent ÷ distinct required mobile numbers</td><td>Indus consent req ↔ SMS gateway DLR</td><td>Must = 100% of unique numbers</td></tr>
+        <tr><td>Approval→Settled cycle time</td><td>date(settled) − date(approved)</td><td>Indus approval ↔ LMS SOA date</td><td>Alert if trending → 45d</td></tr>
+        <tr><td>Excess ageing</td><td>days since approval for part-paid, unmatched cases</td><td>LMS payment ledger ↔ agreed amount (Indus)</td><td>Bucket; &gt;45d = void risk</td></tr>
+        <tr><td>Void rate</td><td>voided ÷ approved settlements (90d rolling)</td><td>Indus void flag</td><td>Watch; false-void must = 0</td></tr>
+        <tr><td>Post-approval withdrawal</td><td>withdrawal event where state ≥ approved</td><td>Indus state machine audit</td><td>Hard breach; must = 0</td></tr>
+        <tr><td>Unmatched payments</td><td>payment with no matched case/agreed amount</td><td>LMS receipts ↔ Indus Collect matcher</td><td>Trend weekly; assign desk</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="foot">
+    Illustrative placeholder data — replace with live feeds per the dictionary above. Industry context (RBI board-approved OTS policy, NBFC reconciliation/matching challenges) informed metric selection; sources:
+    <a style="color:var(--accent)" href="https://freed.care/blog/rbi-guidelines-on-loan-settlement-what-banks-are-required-to-offer">RBI guidelines on loan settlement (freed.care)</a>,
+    <a style="color:var(--accent)" href="https://payu.in/blog/more-than-just-payments-how-payu-used-upi-to-solve-reconciliation-for-nbfcs/">PayU on NBFC reconciliation</a>.
+    Content from sources was rephrased for compliance. Generated for internal governance monitoring.
+  </div>
+</div>
+
+<script>
+// ---- tiny dependency-free SVG chart helpers ----
+function el(tag,attrs){const e=document.createElementNS("http://www.w3.org/2000/svg",tag);for(const k in attrs)e.setAttribute(k,attrs[k]);return e;}
+function chart(id,{data,w=640,h=240,pad=36,ymin,ymax,series}){
+  const host=document.getElementById(id);const svg=el("svg",{viewBox:`0 0 ${w} ${h}`});
+  const n=data.length;const lo=ymin,hi=ymax;
+  const x=i=>pad+ (i*(w-pad*1.4-pad))/(n-1);
+  const y=v=>h-pad-((v-lo)/(hi-lo))*(h-pad*1.6);
+  // axes
+  svg.appendChild(el("line",{x1:pad,y1:h-pad,x2:w-pad*0.4,y2:h-pad,stroke:"#2a3550"}));
+  svg.appendChild(el("line",{x1:pad,y1:pad*0.6,x2:pad,y2:h-pad,stroke:"#2a3550"}));
+  // y gridlines + labels
+  for(let g=0;g<=4;g++){const val=lo+(hi-lo)*g/4;const yy=y(val);
+    svg.appendChild(el("line",{x1:pad,y1:yy,x2:w-pad*0.4,y2:yy,stroke:"#1c2740"}));
+    const t=el("text",{x:pad-6,y:yy+4,fill:"#6f7d99","font-size":"10","text-anchor":"end"});t.textContent=(Math.round(val*10)/10);svg.appendChild(t);}
+  series.forEach(s=>{
+    if(s.type==="hline"){const yy=y(s.value);svg.appendChild(el("line",{x1:pad,y1:yy,x2:w-pad*0.4,y2:yy,stroke:s.color,"stroke-dasharray":s.dash||"5 4","stroke-width":1.5}));
+      if(s.label){const t=el("text",{x:w-pad*0.4,y:yy-4,fill:s.color,"font-size":"10","text-anchor":"end"});t.textContent=s.label;svg.appendChild(t);}return;}
+    const pts=s.values.map((v,i)=>`${x(i)},${y(v)}`).join(" ");
+    svg.appendChild(el("polyline",{points:pts,fill:"none",stroke:s.color,"stroke-width":s.width||2}));
+    if(s.dots)s.values.forEach((v,i)=>{const over=s.ucl!=null&&v>s.ucl;svg.appendChild(el("circle",{cx:x(i),cy:y(v),r:over?5:3,fill:over?"#ef5f6b":s.color}));});
+  });
+  host.appendChild(svg);
+}
+// stacked bar chart
+function stacked(id,{labels,cats,w=640,h=240,pad=36}){
+  const host=document.getElementById(id);const svg=el("svg",{viewBox:`0 0 ${w} ${h}`});
+  const n=labels.length;const bw=(w-pad*1.4-pad)/n*0.6;
+  const tot=100;const y=v=>h-pad-(v/tot)*(h-pad*1.6);
+  svg.appendChild(el("line",{x1:pad,y1:h-pad,x2:w-pad*0.4,y2:h-pad,stroke:"#2a3550"}));
+  for(let i=0;i<n;i++){let acc=0;const cx=pad+ (i+0.5)*((w-pad*1.4-pad)/n);
+    cats.forEach(c=>{const v=c.values[i];const yTop=y(acc+v);const yBot=y(acc);
+      svg.appendChild(el("rect",{x:cx-bw/2,y:yTop,width:bw,height:(yBot-yTop),fill:c.color,rx:2}));acc+=v;});
+    const t=el("text",{x:cx,y:h-pad+14,fill:"#6f7d99","font-size":"10","text-anchor":"middle"});t.textContent=labels[i];svg.appendChild(t);}
+  host.appendChild(svg);
+}
+
+// Chart 1: flag sync lag (SPC)
+const flag=[2.1,2.4,1.9,2.8,3.1,2.6,2.3,5.9,4.2,3.3,2.9,3.5,8.7,6.1,4.4,3.2,2.7,3.0,3.8,6.4];
+const fmean=flag.reduce((a,b)=>a+b,0)/flag.length;
+const fsd=Math.sqrt(flag.reduce((a,b)=>a+(b-fmean)**2,0)/flag.length);
+chart("cc_flag",{data:flag,ymin:0,ymax:10,series:[
+  {type:"hline",value:fmean+3*fsd,color:"#ef5f6b",label:"UCL"},
+  {type:"hline",value:Math.max(0,fmean-3*fsd),color:"#ef5f6b",label:"LCL"},
+  {type:"hline",value:fmean,color:"#36c08a",dash:"2 0",label:"mean"},
+  {type:"hline",value:2,color:"#f2b84b",label:"SLA 2h"},
+  {values:flag,color:"#4f9dff",dots:true,ucl:fmean+3*fsd}
+]});
+
+// Chart 2: cycle time
+const cyc=[19,21,18,22,24,20,23,26,25,22,21,20,28,31,27,24,22,21,23,25];
+chart("cc_cycle",{data:cyc,ymin:0,ymax:50,series:[
+  {type:"hline",value:45,color:"#ef5f6b",label:"void 45d"},
+  {values:cyc,color:"#9b7bff",dots:true}
+]});
+
+// Chart 3: SMS coverage
+const sms=[99,100,98,97,99,96,94,92,95,97,98,91,93,96,98,99,97,95,94,91];
+chart("cc_sms",{data:sms,ymin:80,ymax:100,series:[
+  {type:"hline",value:100,color:"#36c08a",label:"target"},
+  {values:sms,color:"#36c0bf",dots:true}
+]});
+
+// Chart 4: matching outcomes stacked
+stacked("cc_match",{labels:["W1","W2","W3","W4","W5","W6","W7","W8"],cats:[
+  {color:"#36c08a",values:[72,70,68,74,71,69,66,70]},
+  {color:"#f2b84b",values:[21,22,24,19,22,23,25,21]},
+  {color:"#ef5f6b",values:[7,8,8,7,7,8,9,9]}
+]});
+</script>
+</body>
+</html>
