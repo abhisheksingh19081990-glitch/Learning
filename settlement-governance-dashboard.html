@@ -135,7 +135,7 @@
       <div class="tile"><div class="strip s-green"></div><div class="tlabel">Settled</div><div class="tval">500</div><div class="tsub">50% of initiated</div></div>
       <div class="tile"><div class="strip s-purple"></div><div class="tlabel">Withdrawn</div><div class="tval">120</div><div class="tsub">pre-approval</div></div>
       <div class="tile"><div class="strip s-red"></div><div class="tlabel">False voids</div><div class="tval">7</div><div class="tsub">flag-sync caused</div></div>
-      <div class="tile"><div class="strip s-amber"></div><div class="tlabel">SMS mismatch</div><div class="tval">26</div><div class="tsub">cases to fix</div></div>
+      <div class="tile"><div class="strip s-amber"></div><div class="tlabel">Flag-sync breach</div><div class="tval">14</div><div class="tsub">&gt;7 min to LMS</div></div>
     </div>
 
     <div class="rvis">
@@ -274,6 +274,47 @@
       </tbody>
     </table>
     <div class="why"><b>Why it matters:</b> A false void = customer paid in full but the flag didn't reach LMS, so the case wrongly voided. These should be zero — reverse and re-settle each one.</div>
+  </div>
+
+  <!-- ============ SYSTEM GOVERNANCE: FLAG-SYNC SLA ============ -->
+  <div class="section-title">System governance — flag-sync SLA (Indus → LMS)</div>
+  <div class="card">
+    <h3>Post-approval flag must reach LMS within 5–7 minutes</h3>
+    <p class="hint">Measured from approval in Indus to settlement-flag received in LMS. Target ≤ 5 min · Breach &gt; 7 min.</p>
+    <div class="grid g4" style="margin-bottom:14px">
+      <div class="kpi"><div class="label">Avg sync time</div><div class="value" style="color:var(--good)">4.2 <span style="font-size:13px;color:var(--muted)">min</span></div><div class="sub">target ≤ 5 min</div></div>
+      <div class="kpi"><div class="label">Within SLA (≤5 min)</div><div class="value">612</div><div class="sub">92.7% of 660</div></div>
+      <div class="kpi"><div class="label">Amber (5–7 min)</div><div class="value" style="color:var(--warn)">34</div><div class="sub">5.2%</div></div>
+      <div class="kpi"><div class="label">Breach (&gt;7 min)</div><div class="value" style="color:var(--bad)">14</div><div class="sub">2.1% — investigate</div></div>
+    </div>
+    <table>
+      <thead><tr><th>Sync time bucket (approval → LMS flag)</th><th class="num">Cases</th><th class="num">Share</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>0–5 min</td><td class="num">612</td><td class="num">92.7%</td><td><span class="tag t-grn">Within SLA</span></td></tr>
+        <tr><td>5–7 min</td><td class="num">34</td><td class="num">5.2%</td><td><span class="tag t-amb">Watch</span></td></tr>
+        <tr><td>7–30 min</td><td class="num">9</td><td class="num">1.4%</td><td><span class="tag t-red">Breach</span></td></tr>
+        <tr><td>&gt; 30 min (high false-void risk)</td><td class="num">5</td><td class="num">0.8%</td><td><span class="tag t-red">Critical</span></td></tr>
+      </tbody>
+    </table>
+    <div class="why"><b>Why it matters:</b> If the approval flag is slow to reach LMS, the settlement flag isn't raised on time — this is the root cause of false voids. Watching sync time against the 5–7 min SLA catches a stuck queue early, before it voids a paid case.</div>
+  </div>
+
+  <!-- ============ CLOSURE TOLERANCE: EXCESS / SHORT ============ -->
+  <div class="section-title">Closure tolerance — collected vs agreed amount</div>
+  <div class="card">
+    <h3>Small differences (±₹300) are allowed to close — not void</h3>
+    <p class="hint">System may close a case if collected is within the tolerance band of the agreed amount. A case must NOT void just because of a ₹100–300 gap.</p>
+    <table>
+      <thead><tr><th>Closure pattern</th><th class="num">Cases</th><th class="num">₹ difference</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Collected = agreed (exact)</td><td class="num">431</td><td class="num">₹0</td><td><span class="tag t-grn">Clean</span></td></tr>
+        <tr><td>Closed within tolerance — short (customer paid up to ₹300 less)</td><td class="num">52</td><td class="num">−₹100 to −₹300</td><td><span class="tag t-grn">Allowed</span></td></tr>
+        <tr><td>Closed within tolerance — excess (customer paid up to ₹300 more)</td><td class="num">17</td><td class="num">+₹100 to +₹300</td><td><span class="tag t-grn">Allowed</span></td></tr>
+        <tr><td><b>Voided despite being within tolerance</b> (should have closed)</td><td class="num">4</td><td class="num">≤ ₹300 gap</td><td><span class="tag t-red">Control failure</span></td></tr>
+        <tr><td>Difference beyond tolerance (&gt; ₹300) — not auto-closed</td><td class="num">11</td><td class="num">&gt; ₹300</td><td><span class="tag t-amb">Review</span></td></tr>
+      </tbody>
+    </table>
+    <div class="why"><b>Why it matters:</b> A tiny ₹100–300 gap should close the case, not void it. Row 4 is the real problem — cases that wrongly voided over a trivial amount. Those should have auto-closed; each one needs a fix. Row 5 (gap &gt; ₹300) is a genuine exception for manual review.</div>
   </div>
 
   <div class="foot">
