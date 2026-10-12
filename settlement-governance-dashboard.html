@@ -95,6 +95,19 @@
   .vbar .v{font-size:11px;color:#cdd6ea;margin-bottom:4px}
   .vbar .l{font-size:11px;color:var(--muted);margin-top:6px}
   .foot{color:var(--muted);font-size:12px;margin-top:40px;border-top:1px solid var(--line);padding-top:16px}
+  /* interactive consent bar */
+  .consentbar{display:flex;height:40px;border-radius:8px;overflow:hidden;cursor:pointer;border:1px solid var(--line)}
+  .cseg{display:flex;align-items:center;justify-content:center;color:#06111f;font-size:11px;font-weight:700;
+    transition:filter .15s;white-space:nowrap;overflow:hidden}
+  .cseg span{padding:0 4px}
+  .cseg:hover{filter:brightness(1.12)}
+  .c-dig{background:#2f9fd0}.c-man{background:#17a98a}.c-both{background:#e0a022}.c-gap{background:#e14b57;color:#fff}
+  .breakup{max-height:0;overflow:hidden;transition:max-height .3s ease;margin-top:0}
+  .consentbar:hover + .legend + .breakup, .breakup.open{max-height:360px;margin-top:12px}
+  /* day/month toggle */
+  .toggle{display:inline-flex;background:#eef1f7;border-radius:7px;padding:2px}
+  .tg{border:none;background:transparent;font-size:11px;font-weight:600;color:#5b6676;padding:4px 9px;border-radius:5px;cursor:pointer}
+  .tg.active{background:#2f6fd0;color:#fff}
 </style>
 </head>
 <body>
@@ -131,24 +144,23 @@
         <div class="lfun">
           <div class="lfrow"><span>Initiated</span><div class="lftrack"><div class="lffill" style="width:100%"></div></div><span class="lfnum">1,000</span></div>
           <div class="lfrow"><span>Consent</span><div class="lftrack"><div class="lffill" style="width:86%"></div></div><span class="lfnum">860</span></div>
-          <div class="lfrow"><span>Recommended</span><div class="lftrack"><div class="lffill" style="width:74%"></div></div><span class="lfnum">740</span></div>
           <div class="lfrow"><span>Approved</span><div class="lftrack"><div class="lffill" style="width:66%"></div></div><span class="lfnum">660</span></div>
           <div class="lfrow"><span>Settled</span><div class="lftrack"><div class="lffill" style="width:50%"></div></div><span class="lfnum">500</span></div>
         </div>
       </div>
       <div class="vcard">
-        <h4>Void rate — month on month</h4>
-        <div class="lvbars">
-          <div class="lvbar"><div class="v">9.1%</div><div class="b" style="height:46%"></div><div class="l">Apr</div></div>
-          <div class="lvbar"><div class="v">8.4%</div><div class="b" style="height:42%"></div><div class="l">May</div></div>
-          <div class="lvbar"><div class="v">10.2%</div><div class="b" style="height:51%"></div><div class="l">Jun</div></div>
-          <div class="lvbar"><div class="v">9.8%</div><div class="b" style="height:49%"></div><div class="l">Jul</div></div>
-          <div class="lvbar"><div class="v">11.7%</div><div class="b hot" style="height:59%"></div><div class="l">Aug</div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <h4 style="margin:0" id="voidHdr">Void rate — month wise</h4>
+          <div class="toggle">
+            <button class="tg active" data-mode="month" onclick="setVoid('month')">Month wise</button>
+            <button class="tg" data-mode="day" onclick="setVoid('day')">Day wise</button>
+          </div>
         </div>
+        <div class="lvbars" id="voidBars"></div>
       </div>
     </div>
   </div>
-  <div class="why"><b>Why this view:</b> This top band mirrors a Power BI report page — a KPI tile strip plus two glanceable visuals and a month slicer — so leadership gets the headline numbers in one glance. The detailed, reconcilable tables below are the working layer the governance team drills into.</div>
+  <div class="why"><b>Why this view:</b> One-glance summary for leadership (like a Power BI page). Detailed tables below are for the team to dig into.</div>
 
   <!-- ============ WATERFALL ============ -->
   <div class="section-title">Monthly cohort waterfall — stage flow &amp; count reconciliation</div>
@@ -158,30 +170,46 @@
     <div class="wf-row"><div class="wf-name">Initiated (unique)<small>consent SMS fired</small></div><div class="wf-track"><div class="wf-fill wf-stay" style="width:100%"></div></div><div class="wf-num"><b>1,000</b> cases<br><span class="match-ok">SMS 1,000 ✓ match</span></div></div>
     <div class="wf-row"><div class="wf-name">Consent received<small>must match initiated cohort</small></div><div class="wf-track"><div class="wf-fill wf-stay" style="width:86%"></div></div><div class="wf-num"><b>860</b> of 1,000<br><span class="match-bad">140 pending ⚠</span></div></div>
     <div class="wf-row"><div class="wf-name">Withdrawn before approval<small>withdrawal SMS must match</small></div><div class="wf-track"><div class="wf-fill wf-exit" style="width:12%"></div></div><div class="wf-num"><b>120</b> withdrawn<br><span class="match-ok">SMS 120 ✓ match</span></div></div>
-    <div class="wf-row"><div class="wf-name">Recommended<small>higher-authority stage</small></div><div class="wf-track"><div class="wf-fill wf-stay" style="width:74%"></div></div><div class="wf-num"><b>740</b> cases<br><span class="match-ok">in control</span></div></div>
     <div class="wf-row"><div class="wf-name">Approved<small>flag to LMS; SMS app + co-app</small></div><div class="wf-track"><div class="wf-fill wf-stay" style="width:66%"></div></div><div class="wf-num"><b>660</b> approved<br><span class="match-bad">SMS 648 ⚠ 12 short</span></div></div>
-    <div class="wf-row"><div class="wf-name">Fully paid / matched<small>Indus match flag → LMS</small></div><div class="wf-track"><div class="wf-fill wf-stay" style="width:52%"></div></div><div class="wf-num"><b>520</b> matched<br><span class="match-ok">on track</span></div></div>
     <div class="wf-row"><div class="wf-name">Settled &amp; closed (SOA)<small>end state</small></div><div class="wf-track"><div class="wf-fill wf-stay" style="width:50%"></div></div><div class="wf-num"><b>500</b> settled</div></div>
     <div class="legend"><span><span class="dot" style="background:#36c0bf"></span>Progressing</span><span><span class="dot" style="background:#9b7bff"></span>Exited</span><span class="match-ok">✓ match</span><span class="match-bad">⚠ mismatch / breach</span></div>
-    <div class="why"><b>Why it matters:</b> Every stage is reconciled against the <b>same initiated cohort</b>, so any “should-match” line that doesn’t tie out is an instant red flag — 860 consents vs 1,000 initiated means 140 stuck; “12 short” means approval SMS failed for 12 cases.</div>
+    <div class="why"><b>Why it matters:</b> Each stage is checked against the same month's cases. Any line that doesn't match is a red flag to chase.</div>
   </div>
 
   <!-- ============ CONSENT COMPLETENESS: DIGITAL + MANUAL = INITIATED ============ -->
   <div class="section-title">Consent completeness — digital + manual must equal initiated</div>
   <div class="card">
     <h3>Every initiated case must carry a consent (digital OR manual)</h3>
-    <p class="hint">Rule: <code>digital consents + manual consents = initiated cases</code> for the cohort. Any gap = cases with no consent on record.</p>
-    <table>
-      <thead><tr><th>Consent type</th><th class="num">Cases</th><th class="num">% of initiated</th><th>Check</th></tr></thead>
-      <tbody>
-        <tr><td>Digital consent</td><td class="num">705</td><td class="num">70.5%</td><td><span class="tag t-grn">OK</span></td></tr>
-        <tr><td>Manual consent (B2B download route)</td><td class="num">141</td><td class="num">14.1%</td><td><span class="tag t-grn">OK</span></td></tr>
-        <tr><td>Both captured (should be rare — see control below)</td><td class="num">14</td><td class="num">1.4%</td><td><span class="tag t-amb">Review</span></td></tr>
-        <tr><td><b>No consent on record</b> (gap)</td><td class="num">140</td><td class="num">14.0%</td><td><span class="tag t-red">Investigate</span></td></tr>
-        <tr class="total"><td>Total initiated</td><td class="num">1,000</td><td class="num">100%</td><td></td></tr>
-      </tbody>
-    </table>
-    <div class="why"><b>Why it matters:</b> If <code>digital + manual</code> does not add up to initiated cases, some settlements are progressing <b>without a consent record</b> — a hard compliance gap. Here 705 + 141 = 846 proper single-channel consents, 14 have both, and <b>140 have none</b> (the same cases stuck at the consent stage in the waterfall). This table makes the gap and its size explicit.</div>
+    <p class="hint">Hover or tap the bar below to see the digital vs manual breakup. Rule: <code>digital + manual = initiated</code>; any gap = cases with no consent.</p>
+
+    <!-- interactive stacked bar: hover/click shows breakup -->
+    <div class="consentbar" id="consentBar" onclick="toggleConsent()">
+      <div class="cseg c-dig"  style="width:70.5%" data-k="dig"><span>Digital 705</span></div>
+      <div class="cseg c-man"  style="width:14.1%" data-k="man"><span>Manual 141</span></div>
+      <div class="cseg c-both" style="width:1.4%"  data-k="both"></div>
+      <div class="cseg c-gap"  style="width:14.0%" data-k="gap"><span>Gap 140</span></div>
+    </div>
+    <div class="legend" style="margin-top:8px">
+      <span><span class="dot" style="background:#2f9fd0"></span>Digital</span>
+      <span><span class="dot" style="background:#17a98a"></span>Manual</span>
+      <span><span class="dot" style="background:#e0a022"></span>Both</span>
+      <span><span class="dot" style="background:#e14b57"></span>No consent (gap)</span>
+    </div>
+
+    <!-- breakup panel revealed on hover/click -->
+    <div class="breakup" id="consentBreak">
+      <table>
+        <thead><tr><th>Consent type</th><th class="num">Cases</th><th class="num">% of initiated</th><th>Check</th></tr></thead>
+        <tbody>
+          <tr><td>Digital consent</td><td class="num">705</td><td class="num">70.5%</td><td><span class="tag t-grn">OK</span></td></tr>
+          <tr><td>Manual consent (B2B download route)</td><td class="num">141</td><td class="num">14.1%</td><td><span class="tag t-grn">OK</span></td></tr>
+          <tr><td>Both captured</td><td class="num">14</td><td class="num">1.4%</td><td><span class="tag t-amb">Review</span></td></tr>
+          <tr><td><b>No consent on record</b> (gap)</td><td class="num">140</td><td class="num">14.0%</td><td><span class="tag t-red">Investigate</span></td></tr>
+          <tr class="total"><td>Total initiated</td><td class="num">1,000</td><td class="num">100%</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="why"><b>Why it matters:</b> If digital + manual don’t add up to initiated, some cases have moved ahead with no consent on record. Here 140 have none — a compliance gap to close.</div>
   </div>
 
   <!-- ============ DIGITAL vs MANUAL CONFLICT CONTROL ============ -->
@@ -195,7 +223,7 @@
         <tr><td><b>Both captured — digital taken BEFORE manual</b> (control violation)</td><td class="num">6</td><td><span class="tag t-red">Violation</span></td></tr>
       </tbody>
     </table>
-    <div class="why"><b>Why it matters:</b> Digital-then-manual is a true control violation — the system should have locked the manual route once digital consent existed. Each one risks duplicate records or a reopened closed step; root-cause and fix the lockout.</div>
+    <div class="why"><b>Why it matters:</b> If digital consent is already there, manual should be blocked. Digital-then-manual means the block failed — fix it.</div>
   </div>
 
   <!-- ============ APPLICANT & CO-APPLICANT GOVERNANCE ============ -->
@@ -215,7 +243,7 @@
           <tr><td>Delivery failures (valid number)</td><td class="num">9</td><td class="num">17</td></tr>
         </tbody>
       </table>
-      <div class="why"><b>Why it matters:</b> The co-applicant is the party most often missed — numbers are NULL (94) or SMS silently fails (17). Monitoring both parties side by side ensures the co-applicant’s consent/notification is genuinely solicited, not skipped. The “delivery failures with a valid number” rows are the real breaches to chase.</div>
+      <div class="why"><b>Why it matters:</b> The co-applicant is missed most often — number NULL or SMS fails. Watching both parties makes sure neither is skipped.</div>
     </div>
 
     <div class="card">
@@ -230,7 +258,7 @@
           <tr><td><b>Genuine — no SMS to EITHER party</b></td><td class="num">9</td><td>0</td><td><span class="tag t-red">Investigate</span></td></tr>
         </tbody>
       </table>
-      <div class="why"><b>Why it matters:</b> Rows 1 &amp; 2 are correct by design (same number → de-dup; NULL co-app number → nothing to send) and must not be treated as errors. Row 3 is the de-dup bug (two numbers, one SMS). Row 4 — a valid number but no SMS to anyone — is the genuine failure that must reach zero.</div>
+      <div class="why"><b>Why it matters:</b> Rows 1 &amp; 2 are correct (same number, or no co-app number). Only the last row — valid number but no SMS — is a real failure to fix.</div>
     </div>
   </div>
 
@@ -245,7 +273,7 @@
         <tr><td><b>Full amount received in Indus, but voided because match flag did not sync to LMS</b></td><td class="num">7</td><td><span class="tag t-red">FALSE VOID</span></td></tr>
       </tbody>
     </table>
-    <div class="why"><b>Why it matters:</b> A <b>false void</b> is a case where the customer actually paid the full agreed amount into Indus, but the matched-flag didn’t sync to LMS in time, so the case auto-voided at +45 days and the paid amount got wrongly adjusted against overdue. These must be <b>zero</b>. Tracking them separately triggers reversal + re-settlement and quantifies the business cost of the flag-sync delay.</div>
+    <div class="why"><b>Why it matters:</b> A false void = customer paid in full but the flag didn't reach LMS, so the case wrongly voided. These should be zero — reverse and re-settle each one.</div>
   </div>
 
   <div class="foot">
@@ -257,8 +285,29 @@
 </div>
 
 <script>
+  // keep cohort month label in sync
   var sel=document.getElementById('month');
   sel.addEventListener('change',function(){document.getElementById('m1').textContent=sel.value;});
+
+  // ---- consent breakup: also toggle on click (hover handled by CSS) ----
+  function toggleConsent(){document.getElementById('consentBreak').classList.toggle('open');}
+
+  // ---- void chart: day-wise / month-wise toggle ----
+  var voidData={
+    month:[{l:'Apr',v:9.1},{l:'May',v:8.4},{l:'Jun',v:10.2},{l:'Jul',v:9.8},{l:'Aug',v:11.7,hot:true}],
+    day:[{l:'1',v:0.4},{l:'5',v:0.6},{l:'10',v:0.5},{l:'15',v:0.9},{l:'20',v:0.7},{l:'25',v:1.2,hot:true},{l:'30',v:0.8}]
+  };
+  function setVoid(mode){
+    var max=Math.max.apply(null,voidData[mode].map(function(d){return d.v;}));
+    var html=voidData[mode].map(function(d){
+      var h=Math.round((d.v/max)*90)+10;
+      return '<div class="lvbar"><div class="v">'+d.v+'%</div><div class="b'+(d.hot?' hot':'')+'" style="height:'+h+'%"></div><div class="l">'+d.l+'</div></div>';
+    }).join('');
+    document.getElementById('voidBars').innerHTML=html;
+    document.getElementById('voidHdr').textContent='Void rate — '+(mode==='day'?'day wise (Aug 2026)':'month wise');
+    document.querySelectorAll('.tg').forEach(function(b){b.classList.toggle('active',b.dataset.mode===mode);});
+  }
+  setVoid('month');
 </script>
 </body>
 </html>
