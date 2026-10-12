@@ -83,6 +83,8 @@
   .wfh-sub td{color:var(--muted);font-style:italic}
   .wfh-end td{background:rgba(54,192,138,.12);font-weight:800;color:#bfe9d4;border-top:1px solid var(--good)}
   .wfh-end td.num{color:var(--good)}
+  .tg2{border:none;background:transparent;font-size:11px;font-weight:600;color:var(--muted);padding:4px 10px;border-radius:5px;cursor:pointer}
+  .tg2.active{background:var(--accent);color:#fff}
   /* light funnel bars for report */
   .lfun{display:flex;flex-direction:column;gap:7px}
   .lfrow{display:grid;grid-template-columns:120px 1fr 70px;align-items:center;gap:9px;font-size:12px;color:#39424f}
@@ -142,7 +144,7 @@
 <body>
 <header>
   <h1>Settlement Process — Governance Dashboard</h1>
-  <p>Monthly <b>cohort</b> view: cases <b>initiated in a month</b> are tracked through every stage, reconciling counts at each step (SMS vs cases, consent vs initiated, applicant vs co-applicant). Mismatches and SLA breaches are highlighted. Figures are illustrative placeholders — wire each tile to your query.</p>
+
 </header>
 
 <div class="wrap">
@@ -256,35 +258,22 @@
   <div class="section-title">Applicant &amp; co-applicant — governance monitoring</div>
   <div class="grid g2">
     <div class="card">
-      <h3>Who actually received the initiation SMS — waterfall</h3>
-      <p class="hint"><b>How to read:</b> start at the top (all initiated cases). Each red line is a drop-off with its reason (−N). Subtract the drops and you land on how many actually got the SMS. The numbers always add back to the top.</p>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
+        <h3 style="margin:0">Who was sent the SMS — waterfall</h3>
+        <div class="toggle" style="background:#1d2740">
+          <button class="tg2 active" data-pstage="init" onclick="setParty('init')">Initiation</button>
+          <button class="tg2" data-pstage="appr" onclick="setParty('appr')">Approval</button>
+        </div>
+      </div>
+      <p class="hint"><b>How to read:</b> start at the top (all cases). Each red line is a drop-off with its reason (−N). Subtract the drops and you land on how many were <b>sent</b> the SMS. Rule: only <b>unique</b> numbers get an SMS — if the co-applicant's number is the same as the applicant's, it is correctly not sent again. The numbers always add back to the top.</p>
 
-      <!-- APPLICANT waterfall -->
       <div class="wfh-title">APPLICANT</div>
-      <table class="wfh">
-        <tbody>
-          <tr class="wfh-top"><td>Cases initiated (every case has an applicant)</td><td class="num">1,000</td></tr>
-          <tr class="wfh-drop"><td>− Applicant mobile number missing</td><td class="num">0</td></tr>
-          <tr class="wfh-sub"><td>= Applicants with a number we can SMS</td><td class="num">1,000</td></tr>
-          <tr class="wfh-drop"><td>− SMS failed to deliver (valid number)</td><td class="num">9</td></tr>
-          <tr class="wfh-end"><td>= Applicants who received the SMS</td><td class="num">991</td></tr>
-        </tbody>
-      </table>
+      <table class="wfh" id="wfApp"></table>
 
-      <!-- CO-APPLICANT waterfall -->
       <div class="wfh-title" style="margin-top:16px">CO-APPLICANT</div>
-      <table class="wfh">
-        <tbody>
-          <tr class="wfh-top"><td>Cases initiated</td><td class="num">1,000</td></tr>
-          <tr class="wfh-drop"><td>− No co-applicant on the case</td><td class="num">388</td></tr>
-          <tr class="wfh-sub"><td>= Co-applicants present</td><td class="num">612</td></tr>
-          <tr class="wfh-drop"><td>− Co-applicant mobile number missing (NULL)</td><td class="num">94</td></tr>
-          <tr class="wfh-sub"><td>= Co-applicants with a number we can SMS</td><td class="num">518</td></tr>
-          <tr class="wfh-drop"><td>− SMS failed to deliver (valid number)</td><td class="num">17</td></tr>
-          <tr class="wfh-end"><td>= Co-applicants who received the SMS</td><td class="num">501</td></tr>
-        </tbody>
-      </table>
-      <div class="why"><b>Why it matters:</b> Reading top-down, the applicant barely drops (only 9 failed). The co-applicant loses a lot — 388 cases have none, 94 have no number, and 17 failed despite a valid number. Only that last 17 is a true miss to fix; the rest is explained. Because every drop is a labelled line, the numbers always reconcile to the top.</div>
+      <table class="wfh" id="wfCoapp"></table>
+
+      <div class="why"><b>Why it matters:</b> The applicant barely drops. The co-applicant drops for three different reasons, and they are <b>not the same</b>: “same number as applicant” is <b>correct</b> (one SMS per unique number), “no number” is a coverage gap, and “SMS not sent despite a valid unique number” is the real miss to fix. Splitting them stops the team chasing cases that are actually fine.</div>
     </div>
 
     <div class="card">
@@ -358,12 +347,6 @@
     <div class="why"><b>Why it matters:</b> A tiny ₹100–300 gap should close the case, not void it. Row 4 is the real problem — cases that wrongly voided over a trivial amount. Those should have auto-closed; each one needs a fix. Row 5 (gap &gt; ₹300) is a genuine exception for manual review.</div>
   </div>
 
-  <div class="foot">
-    Illustrative placeholder data — replace with live feeds. Metric selection informed by NBFC settlement practice in India (RBI board-approved OTS policy; known payment-reconciliation / matching challenges). Sources:
-    <a style="color:var(--accent)" href="https://freed.care/blog/rbi-guidelines-on-loan-settlement-what-banks-are-required-to-offer">RBI guidelines on loan settlement (freed.care)</a>,
-    <a style="color:var(--accent)" href="https://payu.in/blog/more-than-just-payments-how-payu-used-upi-to-solve-reconciliation-for-nbfcs/">PayU on NBFC reconciliation</a>.
-    Content was rephrased for compliance with licensing restrictions.
-  </div>
 </div>
 
 <script>
@@ -373,33 +356,46 @@
       init:1000, cons:860, appr:660, sett:500, wd:120, fv:7, fs:14,
       consSmsOk:true, apprSms:648, apprShort:12,
       voidDay:[{l:'1',v:0.4},{l:'5',v:0.6},{l:'10',v:0.5},{l:'15',v:0.9},{l:'20',v:0.7},{l:'25',v:1.2,hot:true},{l:'30',v:0.8}],
+      // party waterfalls: each reconciles top-down. coSame = co-app number same as applicant (correctly not sent)
+      party:{
+        init:{top:1000, app:{noNum:0, notSent:9}, co:{noCo:388, coSame:70, noNum:94, notSent:17}},
+        appr:{top:660,  app:{noNum:0, notSent:12}, co:{noCo:262, coSame:48, noNum:52, notSent:9}}
+      },
       comm:{
-        'Settlement initiated':{sms:true,app:1000,coapp:612,total:1612,unique:1398,delivered:1372,failed:26},
-        'Consent received':    {sms:false,note:'No SMS at this stage (consent is a response, not a trigger).'},
-        'Settlement approved': {sms:true,app:660,coapp:398,total:1058,unique:1046,delivered:1034,failed:12},
-        'Settled & closed':    {sms:true,app:500,coapp:300,total:800,unique:792,delivered:788,failed:4}
+        'Settlement initiated':{sms:true,app:1000,coapp:612,total:1612,unique:1398,sent:1372,notsent:26},
+        'Consent SMS initiated':{sms:true,app:860,coapp:510,total:1370,unique:1198,sent:1180,notsent:18},
+        'Settlement approved': {sms:true,app:660,coapp:398,total:1058,unique:1046,sent:1034,notsent:12},
+        'Settled & closed':    {sms:true,app:500,coapp:300,total:800,unique:792,sent:788,notsent:4}
       }
     },
     'Sep 2026':{
       init:1180, cons:1040, appr:815, sett:640, wd:96, fv:3, fs:6,
       consSmsOk:true, apprSms:812, apprShort:3,
       voidDay:[{l:'1',v:0.3},{l:'5',v:0.4},{l:'10',v:0.6},{l:'15',v:0.5},{l:'20',v:0.8},{l:'25',v:0.6},{l:'30',v:0.5}],
+      party:{
+        init:{top:1180, app:{noNum:0, notSent:11}, co:{noCo:460, coSame:88, noNum:60, notSent:9}},
+        appr:{top:815,  app:{noNum:0, notSent:3}, co:{noCo:317, coSame:60, noNum:40, notSent:4}}
+      },
       comm:{
-        'Settlement initiated':{sms:true,app:1180,coapp:720,total:1900,unique:1662,delivered:1651,failed:11},
-        'Consent received':    {sms:false,note:'No SMS at this stage (consent is a response, not a trigger).'},
-        'Settlement approved': {sms:true,app:815,coapp:498,total:1313,unique:1301,delivered:1298,failed:3},
-        'Settled & closed':    {sms:true,app:640,coapp:384,total:1024,unique:1018,delivered:1016,failed:2}
+        'Settlement initiated':{sms:true,app:1180,coapp:720,total:1900,unique:1662,sent:1651,notsent:11},
+        'Consent SMS initiated':{sms:true,app:1040,coapp:632,total:1672,unique:1480,sent:1472,notsent:8},
+        'Settlement approved': {sms:true,app:815,coapp:498,total:1313,unique:1301,sent:1298,notsent:3},
+        'Settled & closed':    {sms:true,app:640,coapp:384,total:1024,unique:1018,sent:1016,notsent:2}
       }
     },
     'Jul 2026':{
       init:910, cons:742, appr:548, sett:402, wd:138, fv:11, fs:21,
       consSmsOk:false, apprSms:521, apprShort:27,
       voidDay:[{l:'1',v:0.6},{l:'5',v:0.9},{l:'10',v:0.7},{l:'15',v:1.1},{l:'20',v:1.4,hot:true},{l:'25',v:1.0},{l:'30',v:0.9}],
+      party:{
+        init:{top:910, app:{noNum:0, notSent:42}, co:{noCo:350, coSame:64, noNum:84, notSent:28}},
+        appr:{top:548, app:{noNum:0, notSent:27}, co:{noCo:210, coSame:40, noNum:48, notSent:19}}
+      },
       comm:{
-        'Settlement initiated':{sms:true,app:910,coapp:560,total:1470,unique:1282,delivered:1240,failed:42},
-        'Consent received':    {sms:false,note:'No SMS at this stage (consent is a response, not a trigger).'},
-        'Settlement approved': {sms:true,app:548,coapp:331,total:879,unique:866,delivered:839,failed:27},
-        'Settled & closed':    {sms:true,app:402,coapp:240,total:642,unique:636,delivered:628,failed:8}
+        'Settlement initiated':{sms:true,app:910,coapp:560,total:1470,unique:1282,sent:1240,notsent:42},
+        'Consent SMS initiated':{sms:true,app:742,coapp:430,total:1172,unique:1010,sent:978,notsent:32},
+        'Settlement approved': {sms:true,app:548,coapp:331,total:879,unique:866,sent:839,notsent:27},
+        'Settled & closed':    {sms:true,app:402,coapp:240,total:642,unique:636,sent:628,notsent:8}
       }
     }
   };
@@ -425,7 +421,7 @@
     document.getElementById('k_fv').textContent=fmt(d.fv);
     document.getElementById('k_fs').textContent=fmt(d.fs);
     // stage flow (exec) — clickable rows open the communication drawer
-    var stages=[['Settlement initiated',d.init],['Consent received',d.cons],['Settlement approved',d.appr],['Settled & closed',d.sett]];
+    var stages=[['Settlement initiated',d.init],['Consent SMS initiated',d.cons],['Settlement approved',d.appr],['Settled & closed',d.sett]];
     document.getElementById('stageFlow').innerHTML=stages.map(function(s){
       var w=Math.round(s[1]/d.init*100);
       return '<div class="lfrow clk" data-stage="'+s[0]+'" onclick="showComm(this,\''+s[0].replace(/'/g,"")+'\')"><span>'+s[0]+'</span><div class="lftrack"><div class="lffill" style="width:'+w+'%"></div></div><span class="lfnum">'+fmt(s[1])+'</span></div>';
@@ -437,7 +433,7 @@
     var apprMatch=d.apprShort>0?'<span class="match-bad">SMS '+fmt(d.apprSms)+' ⚠ '+d.apprShort+' short</span>':'<span class="match-ok">SMS '+fmt(d.appr)+' ✓ match</span>';
     var rows=[
       {n:'Settlement initiated',s:'consent SMS fired',w:100,exit:false,num:'<b>'+fmt(d.init)+'</b> cases<br><span class="match-ok">SMS '+fmt(d.init)+' ✓ match</span>'},
-      {n:'Consent received',s:'should match initiated',w:Math.round(d.cons/d.init*100),exit:false,num:'<b>'+fmt(d.cons)+'</b> of '+fmt(d.init)+'<br>'+(d.init-d.cons>0?'<span class="match-bad">'+(d.init-d.cons)+' pending ⚠</span>':'<span class="match-ok">✓ match</span>')},
+      {n:'Consent SMS initiated',s:'consent SMS fired to customers',w:Math.round(d.cons/d.init*100),exit:false,num:'<b>'+fmt(d.cons)+'</b> SMS fired<br>'+(d.init-d.cons>0?'<span class="match-bad">'+(d.init-d.cons)+' not yet fired ⚠</span>':'<span class="match-ok">✓ match</span>')},
       {n:'Withdrawn before approval',s:'withdrawal SMS must match',w:Math.round(d.wd/d.init*100),exit:true,num:'<b>'+fmt(d.wd)+'</b> withdrawn<br><span class="match-ok">SMS '+fmt(d.wd)+' ✓ match</span>'},
       {n:'Settlement approved',s:'flag to LMS; SMS app + co-app',w:Math.round(d.appr/d.init*100),exit:false,num:'<b>'+fmt(d.appr)+'</b> approved<br>'+apprMatch},
       {n:'Settled & closed',s:'end state (SOA)',w:Math.round(d.sett/d.init*100),exit:false,num:'<b>'+fmt(d.sett)+'</b> settled'}
@@ -448,6 +444,40 @@
         '<div class="wf-num">'+r.num+'</div></div>';
     }).join('');
     setVoid(curMode); // refresh void chart (day view is month-specific)
+    setParty(curPStage); // refresh party waterfall
+  }
+
+  // ===== party waterfall (Initiation / Approval), top-down reconciling =====
+  var curPStage='init';
+  function row(cls,label,val){return '<tr class="'+cls+'"><td>'+label+'</td><td class="num">'+(typeof val==='number'?fmt(val):val)+'</td></tr>';}
+  function setParty(stage){
+    curPStage=stage;
+    var m=document.getElementById('month').value, p=DATA[m].party[stage];
+    var top=p.top;
+    // Applicant
+    var aWith=top-p.app.noNum, aSent=aWith-p.app.notSent;
+    var aHtml=
+      row('wfh-top','Cases at this stage (each has an applicant)',top)+
+      row('wfh-drop','− Applicant mobile number missing',p.app.noNum)+
+      row('wfh-sub','= Applicants with a number',aWith)+
+      row('wfh-drop','− SMS not sent (valid unique number)',p.app.notSent)+
+      row('wfh-end','= Applicants SENT the SMS',aSent);
+    document.getElementById('wfApp').innerHTML='<tbody>'+aHtml+'</tbody>';
+    // Co-applicant
+    var coPresent=top-p.co.noCo;
+    var coUniqNum=coPresent-p.co.coSame-p.co.noNum;
+    var coSent=coUniqNum-p.co.notSent;
+    var cHtml=
+      row('wfh-top','Cases at this stage',top)+
+      row('wfh-drop','− No co-applicant on the case',p.co.noCo)+
+      row('wfh-sub','= Co-applicants present',coPresent)+
+      row('wfh-drop','− Co-applicant number SAME as applicant (correctly not sent — duplicate)',p.co.coSame)+
+      row('wfh-drop','− Co-applicant mobile number missing (NULL)',p.co.noNum)+
+      row('wfh-sub','= Co-applicants with a UNIQUE number to SMS',coUniqNum)+
+      row('wfh-drop','− SMS not sent (valid unique number)',p.co.notSent)+
+      row('wfh-end','= Co-applicants SENT the SMS',coSent);
+    document.getElementById('wfCoapp').innerHTML='<tbody>'+cHtml+'</tbody>';
+    document.querySelectorAll('.tg2').forEach(function(b){b.classList.toggle('active',b.dataset.pstage===stage);});
   }
 
   // consent breakup toggle (open by default; click to collapse)
@@ -467,16 +497,16 @@
     if(!c.sms){
       html+='<div class="tiphint">'+c.note+'</div>';
     } else {
-      var rate=Math.round(c.delivered/c.unique*1000)/10;
+      var rate=Math.round(c.sent/c.unique*1000)/10;
       html+=''+
         '<div class="crow"><span>SMS triggered</span><b>Yes</b></div>'+
         '<div class="crow"><span>Applicant numbers</span><b>'+fmt(c.app)+'</b></div>'+
         '<div class="crow"><span>Co-applicant numbers</span><b>'+fmt(c.coapp)+'</b></div>'+
         '<div class="crow"><span>Total numbers targeted</span><b>'+fmt(c.total)+'</b></div>'+
         '<div class="crow"><span>Unique numbers (after de-dup)</span><b>'+fmt(c.unique)+'</b></div>'+
-        '<div class="crow"><span>Delivered</span><b>'+fmt(c.delivered)+'</b></div>'+
-        '<div class="crow"><span>Failed</span><b style="color:#e14b57">'+fmt(c.failed)+'</b></div>'+
-        '<span class="cflag '+(c.failed===0?'cf-ok':'cf-bad')+'">Delivery rate '+rate+'%'+(c.failed>0?' · '+fmt(c.failed)+' failed':' · all delivered')+'</span>';
+        '<div class="crow"><span>Sent</span><b>'+fmt(c.sent)+'</b></div>'+
+        '<div class="crow"><span>Not sent</span><b style="color:#e14b57">'+fmt(c.notsent)+'</b></div>'+
+        '<span class="cflag '+(c.notsent===0?'cf-ok':'cf-bad')+'">Sent '+rate+'% of unique'+(c.notsent>0?' · '+fmt(c.notsent)+' not sent':' · all sent')+'</span>';
     }
     drawer.innerHTML=html; drawer.classList.add('open');
   }
