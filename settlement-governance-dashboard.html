@@ -28,6 +28,7 @@
   .g4{grid-template-columns:repeat(4,1fr)}
   .g3{grid-template-columns:repeat(3,1fr)}
   .g2{grid-template-columns:repeat(2,1fr)}
+  .g1{grid-template-columns:1fr}
   @media(max-width:1100px){.g6{grid-template-columns:repeat(3,1fr)}.g4,.g3,.g2{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:640px){.g6,.g4,.g3,.g2{grid-template-columns:1fr}}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
@@ -271,7 +272,7 @@
 
   <!-- ============ APPLICANT & CO-APPLICANT GOVERNANCE ============ -->
   <div class="section-title">Applicant &amp; co-applicant — governance monitoring</div>
-  <div class="grid g2">
+  <div class="grid g1">
     <div class="card" id="chart-party">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
         <h3 style="margin:0">Who was sent the SMS — waterfall
@@ -294,20 +295,6 @@
       <div class="why"><b>Why it matters:</b> This is for the <b>informational</b> SMS (initiated / approved / closed / void), which goes to both parties. <b>Consent SMS is a separate thing — it goes to the primary applicant only, never the co-applicant.</b> The co-applicant drops for three distinct reasons: “same number as applicant” is correct de-dup, “no number” is a coverage gap, and “not sent despite a valid unique number” is the real miss.</div>
     </div>
 
-    <div class="card">
-      <h3>SMS reconciliation by number scenario</h3>
-      <p class="hint">Separating correct-by-design cases from genuine failures.</p>
-      <table>
-        <thead><tr><th>Scenario</th><th class="num">Cases</th><th>Expected</th><th>Status</th></tr></thead>
-        <tbody>
-          <tr><td>Applicant = Co-applicant number</td><td class="num">214</td><td>1 SMS (de-dup)</td><td><span class="tag t-grn">Correct</span></td></tr>
-          <tr><td>Co-applicant number NULL</td><td class="num">94</td><td>1 SMS (app only)</td><td><span class="tag t-grn">Correct</span></td></tr>
-          <tr><td>Two unique numbers</td><td class="num">388</td><td>2 SMS</td><td><span class="tag t-amb">17 short</span></td></tr>
-          <tr><td><b>Genuine — no SMS to EITHER party</b></td><td class="num">9</td><td>0</td><td><span class="tag t-red">Investigate</span></td></tr>
-        </tbody>
-      </table>
-      <div class="why"><b>Why it matters:</b> Rows 1 &amp; 2 are correct (same number, or no co-app number). Only the last row — valid number but no SMS — is a real failure to fix.</div>
-    </div>
   </div>
 
   <!-- ============ VOID TRACKING incl FALSE VOID ============ -->
@@ -327,18 +314,11 @@
       <div class="vtl-mark vtl-void">Day 135<br><small>VOID if unpaid</small></div>
     </div>
 
-    <h4 style="margin:16px 0 6px;font-size:13px;color:var(--muted)">Where open cases sit right now (ageing)</h4>
-    <table>
-      <thead><tr><th>Stage of payment window</th><th class="num">Cases</th><th>Action</th></tr></thead>
-      <tbody>
-        <tr><td>Within 90 days — on track</td><td class="num">96</td><td><span class="tag t-grn">Normal</span></td></tr>
-        <tr><td>Approaching Day 90 (last 10 days)</td><td class="num">22</td><td><span class="tag t-amb">Nudge customer</span></td></tr>
-        <tr><td><b>In 45-day grace (Day 90–135)</b> — customer unaware, still recoverable</td><td class="num">18</td><td><span class="tag t-amb">Proactive call</span></td></tr>
-        <tr><td>Voided at Day 135 — no / partial payment</td><td class="num">73</td><td><span class="tag t-grn">Genuine void</span></td></tr>
-        <tr><td><b>Voided at Day 135 — but full amount WAS received</b> (flag didn't sync)</td><td class="num">7</td><td><span class="tag t-red">FALSE VOID — reverse</span></td></tr>
-      </tbody>
-    </table>
-    <div class="why"><b>Why it matters:</b> The 45-day grace is the recovery opportunity the customer doesn't know about — a proactive call in Day 90–135 can save a case before it voids. Genuine voids are expected; <b>false voids (full amount received but flag not synced) must be zero</b> — reverse and re-settle each.</div>
+    <h4 style="margin:16px 0 6px;font-size:13px;color:var(--muted)">Payment &amp; void — reconciled against approved cases (<span id="voidApprMonth">Aug 2026</span>)</h4>
+    <p class="hint">Every approved case must land in exactly one bucket below — the buckets add back to the approved total.</p>
+    <table id="payVoidTable"></table>
+
+    <div class="why"><b>Why it matters:</b> Starting from the approved cases, each one is either paid-and-settled, still inside its payment window, in the hidden 45-day grace, or voided. Because the buckets sum back to approved, nothing is lost. The 45-day grace is the recovery window the customer doesn’t know about — a proactive call there can save a case. Genuine voids are expected; <b>false voids (full amount received but flag not synced) must be zero</b>.</div>
   </div>
 
   <!-- ============ SYSTEM GOVERNANCE: FLAG-SYNC SLA ============ -->
@@ -476,7 +456,9 @@
         'Consent SMS initiated':{sms:true,who:'applicant',app:1000,coapp:0,unique:1000,sent:860,notsent:140,nsApp:140,nsCo:0,gapVsInit:140},
         'Settlement approved': {sms:true,who:'both',app:660,coapp:398,total:1058,unique:1046,sent:1034,notsent:12,nsApp:5,nsCo:7},
         'Settled & closed':    {sms:true,who:'both',app:500,coapp:300,total:800,unique:792,sent:788,notsent:4,nsApp:1,nsCo:3}
-      }
+      },
+      // payment & void breakup — must sum to approved (660)
+      pv:{paid:500, within90:96, grace:18, voidGenuine:39, voidFalse:7}
     },
     'Sep 2026':{
       init:1180, cons:1040, appr:815, sett:640, wd:96, fv:3, fs:6,
@@ -492,7 +474,9 @@
         'Consent SMS initiated':{sms:true,who:'applicant',app:1180,coapp:0,unique:1180,sent:1040,notsent:140,nsApp:140,nsCo:0,gapVsInit:140},
         'Settlement approved': {sms:true,who:'both',app:815,coapp:498,total:1313,unique:1301,sent:1298,notsent:3,nsApp:1,nsCo:2},
         'Settled & closed':    {sms:true,who:'both',app:640,coapp:384,total:1024,unique:1018,sent:1016,notsent:2,nsApp:1,nsCo:1}
-      }
+      },
+      // payment & void breakup — must sum to approved (815)
+      pv:{paid:640, within90:120, grace:22, voidGenuine:30, voidFalse:3}
     },
     'Jul 2026':{
       init:910, cons:742, appr:548, sett:402, wd:138, fv:11, fs:21,
@@ -508,7 +492,9 @@
         'Consent SMS initiated':{sms:true,who:'applicant',app:910,coapp:0,unique:910,sent:742,notsent:168,nsApp:168,nsCo:0,gapVsInit:168},
         'Settlement approved': {sms:true,who:'both',app:548,coapp:331,total:879,unique:866,sent:839,notsent:27,nsApp:12,nsCo:15},
         'Settled & closed':    {sms:true,who:'both',app:402,coapp:240,total:642,unique:636,sent:628,notsent:8,nsApp:3,nsCo:5}
-      }
+      },
+      // payment & void breakup — must sum to approved (548)
+      pv:{paid:402, within90:60, grace:13, voidGenuine:62, voidFalse:11}
     }
   };
   // void-rate month-on-month trend (context series, highlights selected month)
@@ -557,6 +543,18 @@
     }).join('');
     setVoid(curMode); // refresh void chart (day view is month-specific)
     setParty(curPStage); // refresh party waterfall
+    // payment & void reconciliation (sums to approved)
+    document.getElementById('voidApprMonth').textContent=m;
+    var pv=d.pv, voidTot=pv.voidGenuine+pv.voidFalse, tot=pv.paid+pv.within90+pv.grace+voidTot;
+    document.getElementById('payVoidTable').innerHTML=
+      '<thead><tr><th>Outcome bucket (of '+fmt(d.appr)+' approved)</th><th class="num">Cases</th><th class="num">% of approved</th><th>Status</th></tr></thead><tbody>'+
+      '<tr><td>Paid in full → settled &amp; closed</td><td class="num">'+fmt(pv.paid)+'</td><td class="num">'+pct(pv.paid,d.appr)+'%</td><td><span class="tag t-grn">Done</span></td></tr>'+
+      '<tr><td>Within 90-day window — still paying</td><td class="num">'+fmt(pv.within90)+'</td><td class="num">'+pct(pv.within90,d.appr)+'%</td><td><span class="tag t-grn">On track</span></td></tr>'+
+      '<tr><td>In 45-day grace (Day 90–135) — recoverable</td><td class="num">'+fmt(pv.grace)+'</td><td class="num">'+pct(pv.grace,d.appr)+'%</td><td><span class="tag t-amb">Proactive call</span></td></tr>'+
+      '<tr><td>Voided — genuine (no / partial by Day 135)</td><td class="num">'+fmt(pv.voidGenuine)+'</td><td class="num">'+pct(pv.voidGenuine,d.appr)+'%</td><td><span class="tag t-grn">Genuine void</span></td></tr>'+
+      '<tr><td><b>Voided — FALSE (full amount received, flag not synced)</b></td><td class="num">'+fmt(pv.voidFalse)+'</td><td class="num">'+pct(pv.voidFalse,d.appr)+'%</td><td><span class="tag t-red">Reverse</span></td></tr>'+
+      '<tr class="total"><td>Total approved (reconciles)</td><td class="num">'+fmt(tot)+'</td><td class="num">100%</td><td>'+(tot===d.appr?'<span class="tag t-grn">✓ ties</span>':'<span class="tag t-red">⚠ mismatch</span>')+'</td></tr>'+
+      '</tbody>';
   }
 
   // ===== party waterfall (Initiation / Approval), top-down reconciling =====
