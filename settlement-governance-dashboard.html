@@ -54,6 +54,9 @@
   @media(max-width:800px){.rvis{grid-template-columns:1fr}}
   .vcard{background:#fff;border:1px solid #e3e8f0;border-radius:11px;padding:13px 14px}
   .vcard h4{margin:0 0 10px;font-size:13px;color:#2a3444}
+  .vhead{font-size:13px;font-weight:800;letter-spacing:.6px;color:#17202c;text-transform:uppercase;
+    border-bottom:2px solid #2f6fd0;padding-bottom:7px;margin:0 0 12px;display:inline-block}
+  .vhead span{color:#5b6676;font-weight:600;letter-spacing:0;text-transform:none}
   /* light funnel bars for report */
   .lfun{display:flex;flex-direction:column;gap:7px}
   .lfrow{display:grid;grid-template-columns:120px 1fr 70px;align-items:center;gap:9px;font-size:12px;color:#39424f}
@@ -125,32 +128,27 @@
         <small>Cohort: cases initiated in selected month · auto-reconciled</small>
       </div>
       <div class="slicer">Month:
-        <select id="month"><option>Sep 2026</option><option selected>Aug 2026</option><option>Jul 2026</option></select>
+        <select id="month" onchange="renderMonth()"><option>Sep 2026</option><option selected>Aug 2026</option><option>Jul 2026</option></select>
       </div>
     </div>
 
     <div class="tiles">
-      <div class="tile"><div class="strip s-blue"></div><div class="tlabel">Initiated</div><div class="tval">1,000</div><div class="tsub">unique cases</div></div>
-      <div class="tile"><div class="strip s-teal"></div><div class="tlabel">Consent captured</div><div class="tval">860</div><div class="tsub">86% of initiated</div></div>
-      <div class="tile"><div class="strip s-green"></div><div class="tlabel">Settled</div><div class="tval">500</div><div class="tsub">50% of initiated</div></div>
-      <div class="tile"><div class="strip s-purple"></div><div class="tlabel">Withdrawn</div><div class="tval">120</div><div class="tsub">pre-approval</div></div>
-      <div class="tile"><div class="strip s-red"></div><div class="tlabel">False voids</div><div class="tval">7</div><div class="tsub">flag-sync caused</div></div>
-      <div class="tile"><div class="strip s-amber"></div><div class="tlabel">Flag-sync breach</div><div class="tval">14</div><div class="tsub">&gt;7 min to LMS</div></div>
+      <div class="tile"><div class="strip s-blue"></div><div class="tlabel">Settlement initiated</div><div class="tval" id="k_init">1,000</div><div class="tsub">unique cases</div></div>
+      <div class="tile"><div class="strip s-teal"></div><div class="tlabel">Consent received</div><div class="tval" id="k_cons">860</div><div class="tsub" id="k_cons_s">86% of initiated</div></div>
+      <div class="tile"><div class="strip s-green"></div><div class="tlabel">Settled &amp; closed</div><div class="tval" id="k_sett">500</div><div class="tsub" id="k_sett_s">50% of initiated</div></div>
+      <div class="tile"><div class="strip s-purple"></div><div class="tlabel">Withdrawn</div><div class="tval" id="k_wd">120</div><div class="tsub">pre-approval</div></div>
+      <div class="tile"><div class="strip s-red"></div><div class="tlabel">False voids</div><div class="tval" id="k_fv">7</div><div class="tsub">flag-sync caused</div></div>
+      <div class="tile"><div class="strip s-amber"></div><div class="tlabel">Flag-sync breach</div><div class="tval" id="k_fs">14</div><div class="tsub">&gt;7 min to LMS</div></div>
     </div>
 
     <div class="rvis">
       <div class="vcard">
-        <h4>Stage flow (cohort)</h4>
-        <div class="lfun">
-          <div class="lfrow"><span>Initiated</span><div class="lftrack"><div class="lffill" style="width:100%"></div></div><span class="lfnum">1,000</span></div>
-          <div class="lfrow"><span>Consent</span><div class="lftrack"><div class="lffill" style="width:86%"></div></div><span class="lfnum">860</span></div>
-          <div class="lfrow"><span>Approved</span><div class="lftrack"><div class="lffill" style="width:66%"></div></div><span class="lfnum">660</span></div>
-          <div class="lfrow"><span>Settled</span><div class="lftrack"><div class="lffill" style="width:50%"></div></div><span class="lfnum">500</span></div>
-        </div>
+        <h4 class="vhead">STAGE FLOW <span id="sf_month">(Aug 2026)</span></h4>
+        <div class="lfun" id="stageFlow"></div>
       </div>
       <div class="vcard">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <h4 style="margin:0" id="voidHdr">Void rate — month wise</h4>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h4 class="vhead" style="margin:0" id="voidHdr">VOID RATE — MONTH WISE</h4>
           <div class="toggle">
             <button class="tg active" data-mode="month" onclick="setVoid('month')">Month wise</button>
             <button class="tg" data-mode="day" onclick="setVoid('day')">Day wise</button>
@@ -166,12 +164,8 @@
   <div class="section-title">Monthly cohort waterfall — stage flow &amp; count reconciliation</div>
   <div class="card">
     <h3>Cases initiated in <span id="m1">Aug 2026</span> — tracked through each stage</h3>
-    <p class="hint">Blue = progressing; purple = exited (withdrawn). The right column shows whether SMS / counts tie out; mismatches &amp; SLA breaches are flagged.</p>
-    <div class="wf-row"><div class="wf-name">Initiated (unique)<small>consent SMS fired</small></div><div class="wf-track"><div class="wf-fill wf-stay" style="width:100%"></div></div><div class="wf-num"><b>1,000</b> cases<br><span class="match-ok">SMS 1,000 ✓ match</span></div></div>
-    <div class="wf-row"><div class="wf-name">Consent received<small>must match initiated cohort</small></div><div class="wf-track"><div class="wf-fill wf-stay" style="width:86%"></div></div><div class="wf-num"><b>860</b> of 1,000<br><span class="match-bad">140 pending ⚠</span></div></div>
-    <div class="wf-row"><div class="wf-name">Withdrawn before approval<small>withdrawal SMS must match</small></div><div class="wf-track"><div class="wf-fill wf-exit" style="width:12%"></div></div><div class="wf-num"><b>120</b> withdrawn<br><span class="match-ok">SMS 120 ✓ match</span></div></div>
-    <div class="wf-row"><div class="wf-name">Approved<small>flag to LMS; SMS app + co-app</small></div><div class="wf-track"><div class="wf-fill wf-stay" style="width:66%"></div></div><div class="wf-num"><b>660</b> approved<br><span class="match-bad">SMS 648 ⚠ 12 short</span></div></div>
-    <div class="wf-row"><div class="wf-name">Settled &amp; closed (SOA)<small>end state</small></div><div class="wf-track"><div class="wf-fill wf-stay" style="width:50%"></div></div><div class="wf-num"><b>500</b> settled</div></div>
+    <p class="hint">Counts are at <b>case level</b> (one row = one unique settlement case). Blue = progressing; purple = exited (withdrawn). The right column shows whether SMS / counts tie out.</p>
+    <div id="waterfall"></div>
     <div class="legend"><span><span class="dot" style="background:#36c0bf"></span>Progressing</span><span><span class="dot" style="background:#9b7bff"></span>Exited</span><span class="match-ok">✓ match</span><span class="match-bad">⚠ mismatch / breach</span></div>
     <div class="why"><b>Why it matters:</b> Each stage is checked against the same month's cases. Any line that doesn't match is a red flag to chase.</div>
   </div>
@@ -326,29 +320,88 @@
 </div>
 
 <script>
-  // keep cohort month label in sync
-  var sel=document.getElementById('month');
-  sel.addEventListener('change',function(){document.getElementById('m1').textContent=sel.value;});
+  // ===== per-month data (illustrative). Each month varies. =====
+  var DATA={
+    'Aug 2026':{
+      init:1000, cons:860, appr:660, sett:500, wd:120, fv:7, fs:14,
+      consSmsOk:true, apprSms:648, apprShort:12,
+      voidDay:[{l:'1',v:0.4},{l:'5',v:0.6},{l:'10',v:0.5},{l:'15',v:0.9},{l:'20',v:0.7},{l:'25',v:1.2,hot:true},{l:'30',v:0.8}]
+    },
+    'Sep 2026':{
+      init:1180, cons:1040, appr:815, sett:640, wd:96, fv:3, fs:6,
+      consSmsOk:true, apprSms:812, apprShort:3,
+      voidDay:[{l:'1',v:0.3},{l:'5',v:0.4},{l:'10',v:0.6},{l:'15',v:0.5},{l:'20',v:0.8},{l:'25',v:0.6},{l:'30',v:0.5}]
+    },
+    'Jul 2026':{
+      init:910, cons:742, appr:548, sett:402, wd:138, fv:11, fs:21,
+      consSmsOk:false, apprSms:521, apprShort:27,
+      voidDay:[{l:'1',v:0.6},{l:'5',v:0.9},{l:'10',v:0.7},{l:'15',v:1.1},{l:'20',v:1.4,hot:true},{l:'25',v:1.0},{l:'30',v:0.9}]
+    }
+  };
+  // void-rate month-on-month trend (context series, highlights selected month)
+  var VOID_MONTH=[{l:'Apr',v:9.1},{l:'May',v:8.4},{l:'Jun',v:10.2},{l:'Jul',v:9.8},{l:'Aug',v:11.7},{l:'Sep',v:7.9}];
 
-  // ---- consent breakup: also toggle on click (hover handled by CSS) ----
+  var curMode='month';
+  function fmt(n){return n.toLocaleString('en-IN');}
+  function pct(a,b){return Math.round(a/b*1000)/10;}
+
+  function renderMonth(){
+    var m=document.getElementById('month').value, d=DATA[m];
+    // labels
+    document.getElementById('m1').textContent=m;
+    document.getElementById('sf_month').textContent='('+m+')';
+    // KPI tiles
+    document.getElementById('k_init').textContent=fmt(d.init);
+    document.getElementById('k_cons').textContent=fmt(d.cons);
+    document.getElementById('k_cons_s').textContent=pct(d.cons,d.init)+'% of initiated';
+    document.getElementById('k_sett').textContent=fmt(d.sett);
+    document.getElementById('k_sett_s').textContent=pct(d.sett,d.init)+'% of initiated';
+    document.getElementById('k_wd').textContent=fmt(d.wd);
+    document.getElementById('k_fv').textContent=fmt(d.fv);
+    document.getElementById('k_fs').textContent=fmt(d.fs);
+    // stage flow (exec)
+    var stages=[['Settlement initiated',d.init],['Consent received',d.cons],['Settlement approved',d.appr],['Settled & closed',d.sett]];
+    document.getElementById('stageFlow').innerHTML=stages.map(function(s){
+      var w=Math.round(s[1]/d.init*100);
+      return '<div class="lfrow"><span>'+s[0]+'</span><div class="lftrack"><div class="lffill" style="width:'+w+'%"></div></div><span class="lfnum">'+fmt(s[1])+'</span></div>';
+    }).join('');
+    // waterfall (detailed, case level)
+    var consMatch=d.consSmsOk?'<span class="match-ok">SMS '+fmt(d.cons)+' ✓ match</span>':'<span class="match-bad">'+(d.init-d.cons)+' pending ⚠</span>';
+    var apprMatch=d.apprShort>0?'<span class="match-bad">SMS '+fmt(d.apprSms)+' ⚠ '+d.apprShort+' short</span>':'<span class="match-ok">SMS '+fmt(d.appr)+' ✓ match</span>';
+    var rows=[
+      {n:'Settlement initiated',s:'consent SMS fired',w:100,exit:false,num:'<b>'+fmt(d.init)+'</b> cases<br><span class="match-ok">SMS '+fmt(d.init)+' ✓ match</span>'},
+      {n:'Consent received',s:'should match initiated',w:Math.round(d.cons/d.init*100),exit:false,num:'<b>'+fmt(d.cons)+'</b> of '+fmt(d.init)+'<br>'+(d.init-d.cons>0?'<span class="match-bad">'+(d.init-d.cons)+' pending ⚠</span>':'<span class="match-ok">✓ match</span>')},
+      {n:'Withdrawn before approval',s:'withdrawal SMS must match',w:Math.round(d.wd/d.init*100),exit:true,num:'<b>'+fmt(d.wd)+'</b> withdrawn<br><span class="match-ok">SMS '+fmt(d.wd)+' ✓ match</span>'},
+      {n:'Settlement approved',s:'flag to LMS; SMS app + co-app',w:Math.round(d.appr/d.init*100),exit:false,num:'<b>'+fmt(d.appr)+'</b> approved<br>'+apprMatch},
+      {n:'Settled & closed',s:'end state (SOA)',w:Math.round(d.sett/d.init*100),exit:false,num:'<b>'+fmt(d.sett)+'</b> settled'}
+    ];
+    document.getElementById('waterfall').innerHTML=rows.map(function(r){
+      return '<div class="wf-row"><div class="wf-name">'+r.n+'<small>'+r.s+'</small></div>'+
+        '<div class="wf-track"><div class="wf-fill '+(r.exit?'wf-exit':'wf-stay')+'" style="width:'+r.w+'%"></div></div>'+
+        '<div class="wf-num">'+r.num+'</div></div>';
+    }).join('');
+    setVoid(curMode); // refresh void chart (day view is month-specific)
+  }
+
+  // consent breakup toggle (hover handled by CSS)
   function toggleConsent(){document.getElementById('consentBreak').classList.toggle('open');}
 
-  // ---- void chart: day-wise / month-wise toggle ----
-  var voidData={
-    month:[{l:'Apr',v:9.1},{l:'May',v:8.4},{l:'Jun',v:10.2},{l:'Jul',v:9.8},{l:'Aug',v:11.7,hot:true}],
-    day:[{l:'1',v:0.4},{l:'5',v:0.6},{l:'10',v:0.5},{l:'15',v:0.9},{l:'20',v:0.7},{l:'25',v:1.2,hot:true},{l:'30',v:0.8}]
-  };
+  // void chart: month-on-month trend, or day-wise for selected month
   function setVoid(mode){
-    var max=Math.max.apply(null,voidData[mode].map(function(d){return d.v;}));
-    var html=voidData[mode].map(function(d){
+    curMode=mode;
+    var m=document.getElementById('month').value;
+    var series = mode==='day' ? DATA[m].voidDay
+      : VOID_MONTH.map(function(x){return {l:x.l,v:x.v,hot:(m.indexOf(x.l)===0)};});
+    var max=Math.max.apply(null,series.map(function(d){return d.v;}));
+    document.getElementById('voidBars').innerHTML=series.map(function(d){
       var h=Math.round((d.v/max)*90)+10;
       return '<div class="lvbar"><div class="v">'+d.v+'%</div><div class="b'+(d.hot?' hot':'')+'" style="height:'+h+'%"></div><div class="l">'+d.l+'</div></div>';
     }).join('');
-    document.getElementById('voidBars').innerHTML=html;
-    document.getElementById('voidHdr').textContent='Void rate — '+(mode==='day'?'day wise (Aug 2026)':'month wise');
+    document.getElementById('voidHdr').textContent='VOID RATE — '+(mode==='day'?'DAY WISE ('+m+')':'MONTH WISE');
     document.querySelectorAll('.tg').forEach(function(b){b.classList.toggle('active',b.dataset.mode===mode);});
   }
-  setVoid('month');
+
+  renderMonth(); // initial paint
 </script>
 </body>
 </html>
