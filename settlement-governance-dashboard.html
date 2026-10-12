@@ -99,6 +99,17 @@
   .logicblock ul{margin:8px 0;padding-left:20px;font-size:13px;color:#cdd6ea}
   .logicblock li{margin:5px 0}
   :target{scroll-margin-top:14px}
+  /* void payment-window timeline */
+  .vtl{display:flex;align-items:stretch;gap:4px;margin:6px 0 2px;flex-wrap:wrap}
+  .vtl-seg{flex:1;min-width:120px;border-radius:7px;padding:10px 12px;color:#06111f;display:flex;flex-direction:column;justify-content:center}
+  .vtl-seg small{font-size:10px;opacity:.8;display:block}
+  .vtl-seg b{font-size:13px}
+  .vtl-known{flex:0 0 auto;background:#2f6fd0;color:#fff;font-size:11px;font-weight:700;align-items:center;text-align:center}
+  .vtl-known2{background:#5fb0e8}
+  .vtl-grace{background:#f2c76b}
+  .vtl-mark{flex:0 0 auto;align-self:center;font-size:11px;font-weight:800;color:var(--ink);text-align:center;padding:0 6px}
+  .vtl-mark small{font-weight:500;color:var(--muted);font-size:10px}
+  .vtl-void{color:var(--bad)}
   /* light funnel bars for report */
   .lfun{display:flex;flex-direction:column;gap:7px}
   .lfrow{display:grid;grid-template-columns:120px 1fr 70px;align-items:center;gap:9px;font-size:12px;color:#39424f}
@@ -267,8 +278,9 @@
           <a class="seelogic" href="#logic-party" onclick="goLogic('chart-party')">See logic ▸</a>
         </h3>
         <div class="toggle" style="background:#1d2740">
-          <button class="tg2 active" data-pstage="init" onclick="setParty('init')">Initiation</button>
-          <button class="tg2" data-pstage="appr" onclick="setParty('appr')">Approval</button>
+          <button class="tg2 active" data-pstage="init" onclick="setParty('init')">Initiated</button>
+          <button class="tg2" data-pstage="appr" onclick="setParty('appr')">Approved</button>
+          <button class="tg2" data-pstage="sett" onclick="setParty('sett')">Settled</button>
         </div>
       </div>
       <p class="hint"><b>How to read:</b> start at the top (all cases). Each red line is a drop-off with its reason (−N). Subtract the drops and you land on how many were <b>sent</b> the SMS. Rule: only <b>unique</b> numbers get an SMS — if the co-applicant's number is the same as the applicant's, it is correctly not sent again. The numbers always add back to the top.</p>
@@ -301,18 +313,32 @@
   <!-- ============ VOID TRACKING incl FALSE VOID ============ -->
   <div class="section-title">Void tracking — including flag-sync false voids</div>
   <div class="card" id="chart-void">
-    <h3 style="margin:0 0 10px">Void reasons — genuine vs false void
+    <h3 style="margin:0 0 4px">Payment window &amp; void — 90 days known + 45 days grace
       <a class="seelogic" href="#logic-void" onclick="goLogic('chart-void')">See logic ▸</a>
     </h3>
+    <p class="hint">Customer agrees a final payment date = <b>approval + 90 days</b> (the only deadline the customer knows). An extra <b>45-day grace</b> follows (customer is NOT told). If the full amount isn't paid by <b>Day 135</b>, the case voids.</p>
+
+    <!-- timeline -->
+    <div class="vtl">
+      <div class="vtl-seg vtl-known"><span>Day 0 — Approval</span></div>
+      <div class="vtl-seg vtl-known2"><b>90-day window</b><small>customer's known deadline</small></div>
+      <div class="vtl-mark">Day 90<br><small>final date customer knows</small></div>
+      <div class="vtl-seg vtl-grace"><b>45-day grace</b><small>hidden — can still pay</small></div>
+      <div class="vtl-mark vtl-void">Day 135<br><small>VOID if unpaid</small></div>
+    </div>
+
+    <h4 style="margin:16px 0 6px;font-size:13px;color:var(--muted)">Where open cases sit right now (ageing)</h4>
     <table>
-      <thead><tr><th>Void reason</th><th class="num">Cases</th><th>Type</th></tr></thead>
+      <thead><tr><th>Stage of payment window</th><th class="num">Cases</th><th>Action</th></tr></thead>
       <tbody>
-        <tr><td>No payment within 45 days</td><td class="num">42</td><td><span class="tag t-grn">Genuine</span></td></tr>
-        <tr><td>Partial only, never reached full by +45d</td><td class="num">31</td><td><span class="tag t-grn">Genuine</span></td></tr>
-        <tr><td><b>Full amount received in Indus, but voided because match flag did not sync to LMS</b></td><td class="num">7</td><td><span class="tag t-red">FALSE VOID</span></td></tr>
+        <tr><td>Within 90 days — on track</td><td class="num">96</td><td><span class="tag t-grn">Normal</span></td></tr>
+        <tr><td>Approaching Day 90 (last 10 days)</td><td class="num">22</td><td><span class="tag t-amb">Nudge customer</span></td></tr>
+        <tr><td><b>In 45-day grace (Day 90–135)</b> — customer unaware, still recoverable</td><td class="num">18</td><td><span class="tag t-amb">Proactive call</span></td></tr>
+        <tr><td>Voided at Day 135 — no / partial payment</td><td class="num">73</td><td><span class="tag t-grn">Genuine void</span></td></tr>
+        <tr><td><b>Voided at Day 135 — but full amount WAS received</b> (flag didn't sync)</td><td class="num">7</td><td><span class="tag t-red">FALSE VOID — reverse</span></td></tr>
       </tbody>
     </table>
-    <div class="why"><b>Why it matters:</b> A false void = customer paid in full but the flag didn't reach LMS, so the case wrongly voided. These should be zero — reverse and re-settle each one.</div>
+    <div class="why"><b>Why it matters:</b> The 45-day grace is the recovery opportunity the customer doesn't know about — a proactive call in Day 90–135 can save a case before it voids. Genuine voids are expected; <b>false voids (full amount received but flag not synced) must be zero</b> — reverse and re-settle each.</div>
   </div>
 
   <!-- ============ SYSTEM GOVERNANCE: FLAG-SYNC SLA ============ -->
@@ -399,10 +425,14 @@
   </div>
 
   <div class="logicblock" id="logic-void">
-    <h3>Void tracking <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <h3>Payment window &amp; void logic <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
     <ul>
-      <li><b>Genuine void</b> = no payment, or partial only, by the agreed-date + 45 days.</li>
-      <li><b>False void</b> = full agreed amount received in Indus, but the match flag did not sync to LMS in time, so the case auto-voided. <b>Target = 0.</b></li>
+      <li><code>Final payment date (known to customer) = Approval date + 90 days</code>. Customer may pay the full agreed amount any time within these 90 days.</li>
+      <li><code>Grace end = Approval date + 90 + 45 = +135 days</code>. Customer can still pay in the 45-day grace, <b>but is not told it exists</b>.</li>
+      <li><b>Void condition:</b> full agreed amount not received by Day 135 → case voids.</li>
+      <li><b>Genuine void</b> = no payment, or partial only, by Day 135.</li>
+      <li><b>False void</b> = full amount actually received in Indus, but the match flag did not sync to LMS in time, so the case wrongly voided at Day 135. <b>Target = 0</b> — reverse and re-settle.</li>
+      <li>Ageing buckets: within 90d · approaching Day 90 · in grace (90–135) · voided at 135.</li>
       <li><code>Void rate = Voided cases ÷ Approved cases</code> (per month).</li>
     </ul>
   </div>
@@ -438,13 +468,14 @@
       // party waterfalls: each reconciles top-down. coSame = co-app number same as applicant (correctly not sent)
       party:{
         init:{top:1000, app:{noNum:0, notSent:9}, co:{noCo:388, coSame:70, noNum:94, notSent:17}},
-        appr:{top:660,  app:{noNum:0, notSent:12}, co:{noCo:262, coSame:48, noNum:52, notSent:9}}
+        appr:{top:660,  app:{noNum:0, notSent:12}, co:{noCo:262, coSame:48, noNum:52, notSent:9}},
+        sett:{top:500,  app:{noNum:0, notSent:4},  co:{noCo:200, coSame:36, noNum:40, notSent:6}}
       },
       comm:{
-        'Settlement initiated':{sms:true,who:'both',app:1000,coapp:612,total:1612,unique:1398,sent:1372,notsent:26},
-        'Consent SMS initiated':{sms:true,who:'applicant',app:1000,coapp:0,unique:1000,sent:860,notsent:140,gapVsInit:140},
-        'Settlement approved': {sms:true,who:'both',app:660,coapp:398,total:1058,unique:1046,sent:1034,notsent:12},
-        'Settled & closed':    {sms:true,who:'both',app:500,coapp:300,total:800,unique:792,sent:788,notsent:4}
+        'Settlement initiated':{sms:true,who:'both',app:1000,coapp:612,total:1612,unique:1398,sent:1372,notsent:26,nsApp:11,nsCo:15},
+        'Consent SMS initiated':{sms:true,who:'applicant',app:1000,coapp:0,unique:1000,sent:860,notsent:140,nsApp:140,nsCo:0,gapVsInit:140},
+        'Settlement approved': {sms:true,who:'both',app:660,coapp:398,total:1058,unique:1046,sent:1034,notsent:12,nsApp:5,nsCo:7},
+        'Settled & closed':    {sms:true,who:'both',app:500,coapp:300,total:800,unique:792,sent:788,notsent:4,nsApp:1,nsCo:3}
       }
     },
     'Sep 2026':{
@@ -453,13 +484,14 @@
       voidDay:[{l:'1',v:0.3},{l:'5',v:0.4},{l:'10',v:0.6},{l:'15',v:0.5},{l:'20',v:0.8},{l:'25',v:0.6},{l:'30',v:0.5}],
       party:{
         init:{top:1180, app:{noNum:0, notSent:11}, co:{noCo:460, coSame:88, noNum:60, notSent:9}},
-        appr:{top:815,  app:{noNum:0, notSent:3}, co:{noCo:317, coSame:60, noNum:40, notSent:4}}
+        appr:{top:815,  app:{noNum:0, notSent:3}, co:{noCo:317, coSame:60, noNum:40, notSent:4}},
+        sett:{top:640,  app:{noNum:0, notSent:2}, co:{noCo:250, coSame:46, noNum:50, notSent:3}}
       },
       comm:{
-        'Settlement initiated':{sms:true,who:'both',app:1180,coapp:720,total:1900,unique:1662,sent:1651,notsent:11},
-        'Consent SMS initiated':{sms:true,who:'applicant',app:1180,coapp:0,unique:1180,sent:1040,notsent:140,gapVsInit:140},
-        'Settlement approved': {sms:true,who:'both',app:815,coapp:498,total:1313,unique:1301,sent:1298,notsent:3},
-        'Settled & closed':    {sms:true,who:'both',app:640,coapp:384,total:1024,unique:1018,sent:1016,notsent:2}
+        'Settlement initiated':{sms:true,who:'both',app:1180,coapp:720,total:1900,unique:1662,sent:1651,notsent:11,nsApp:5,nsCo:6},
+        'Consent SMS initiated':{sms:true,who:'applicant',app:1180,coapp:0,unique:1180,sent:1040,notsent:140,nsApp:140,nsCo:0,gapVsInit:140},
+        'Settlement approved': {sms:true,who:'both',app:815,coapp:498,total:1313,unique:1301,sent:1298,notsent:3,nsApp:1,nsCo:2},
+        'Settled & closed':    {sms:true,who:'both',app:640,coapp:384,total:1024,unique:1018,sent:1016,notsent:2,nsApp:1,nsCo:1}
       }
     },
     'Jul 2026':{
@@ -468,13 +500,14 @@
       voidDay:[{l:'1',v:0.6},{l:'5',v:0.9},{l:'10',v:0.7},{l:'15',v:1.1},{l:'20',v:1.4,hot:true},{l:'25',v:1.0},{l:'30',v:0.9}],
       party:{
         init:{top:910, app:{noNum:0, notSent:42}, co:{noCo:350, coSame:64, noNum:84, notSent:28}},
-        appr:{top:548, app:{noNum:0, notSent:27}, co:{noCo:210, coSame:40, noNum:48, notSent:19}}
+        appr:{top:548, app:{noNum:0, notSent:27}, co:{noCo:210, coSame:40, noNum:48, notSent:19}},
+        sett:{top:402, app:{noNum:0, notSent:8}, co:{noCo:160, coSame:30, noNum:34, notSent:10}}
       },
       comm:{
-        'Settlement initiated':{sms:true,who:'both',app:910,coapp:560,total:1470,unique:1282,sent:1240,notsent:42},
-        'Consent SMS initiated':{sms:true,who:'applicant',app:910,coapp:0,unique:910,sent:742,notsent:168,gapVsInit:168},
-        'Settlement approved': {sms:true,who:'both',app:548,coapp:331,total:879,unique:866,sent:839,notsent:27},
-        'Settled & closed':    {sms:true,who:'both',app:402,coapp:240,total:642,unique:636,sent:628,notsent:8}
+        'Settlement initiated':{sms:true,who:'both',app:910,coapp:560,total:1470,unique:1282,sent:1240,notsent:42,nsApp:18,nsCo:24},
+        'Consent SMS initiated':{sms:true,who:'applicant',app:910,coapp:0,unique:910,sent:742,notsent:168,nsApp:168,nsCo:0,gapVsInit:168},
+        'Settlement approved': {sms:true,who:'both',app:548,coapp:331,total:879,unique:866,sent:839,notsent:27,nsApp:12,nsCo:15},
+        'Settled & closed':    {sms:true,who:'both',app:402,coapp:240,total:642,unique:636,sent:628,notsent:8,nsApp:3,nsCo:5}
       }
     }
   };
@@ -581,7 +614,7 @@
         '<div class="crow"><span>Applicant numbers (consent)</span><b>'+fmt(c.app)+'</b></div>'+
         '<div class="crow"><span>Co-applicant</span><b>Not applicable</b></div>'+
         '<div class="crow"><span>Consent SMS sent</span><b>'+fmt(c.sent)+'</b></div>'+
-        '<div class="crow"><span>Not sent</span><b style="color:#e14b57">'+fmt(c.notsent)+'</b></div>'+
+        '<div class="crow"><span>Not sent (applicant)</span><b style="color:#e14b57">'+fmt(c.notsent)+'</b></div>'+
         '<div class="crow"><span>Gap vs initiated</span><b style="color:#e14b57">'+fmt(c.gapVsInit)+'</b></div>'+
         '<span class="cflag cf-bad">'+fmt(c.gapVsInit)+' initiated applicants did not get a consent SMS — investigate</span>';
     } else {
@@ -591,8 +624,10 @@
         '<div class="crow"><span>Total numbers targeted</span><b>'+fmt(c.total)+'</b></div>'+
         '<div class="crow"><span>Unique numbers (after de-dup)</span><b>'+fmt(c.unique)+'</b></div>'+
         '<div class="crow"><span>Sent</span><b>'+fmt(c.sent)+'</b></div>'+
-        '<div class="crow"><span>Not sent</span><b style="color:#e14b57">'+fmt(c.notsent)+'</b></div>'+
-        '<span class="cflag '+(c.notsent===0?'cf-ok':'cf-bad')+'">Sent '+rate+'% of unique'+(c.notsent>0?' · '+fmt(c.notsent)+' not sent':' · all sent')+'</span>';
+        '<div class="crow"><span>Not sent — total</span><b style="color:#e14b57">'+fmt(c.notsent)+'</b></div>'+
+        '<div class="crow" style="padding-left:14px"><span>↳ not sent to applicant</span><b style="color:#e14b57">'+fmt(c.nsApp)+'</b></div>'+
+        '<div class="crow" style="padding-left:14px"><span>↳ not sent to co-applicant</span><b style="color:#e14b57">'+fmt(c.nsCo)+'</b></div>'+
+        '<span class="cflag '+(c.notsent===0?'cf-ok':'cf-bad')+'">Sent '+rate+'% of unique'+(c.notsent>0?' · '+fmt(c.notsent)+' not sent ('+fmt(c.nsApp)+' app / '+fmt(c.nsCo)+' co-app)':' · all sent')+'</span>';
     }
     drawer.innerHTML=html; drawer.classList.add('open');
   }
