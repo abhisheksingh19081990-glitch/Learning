@@ -51,7 +51,7 @@
   .tile .tsub{font-size:11px;color:#8a93a3}
   .tile .strip{position:absolute;left:0;top:0;bottom:0;width:4px}
   .s-blue{background:#2f6fd0}.s-green{background:#1aa06d}.s-amber{background:#e0a022}.s-red{background:#e14b57}.s-purple{background:#7b5bd0}.s-teal{background:#17a9a7}
-  .rvis{display:grid;grid-template-columns:1.3fr 1fr;gap:12px;margin-top:12px}
+  .rvis{display:grid;grid-template-columns:1.3fr 1fr;gap:12px;margin-top:12px;align-items:start}
   @media(max-width:800px){.rvis{grid-template-columns:1fr}}
   .vcard{background:#fff;border:1px solid #e3e8f0;border-radius:11px;padding:13px 14px}
   .vcard h4{margin:0 0 10px;font-size:13px;color:#2a3444}
@@ -62,9 +62,10 @@
   .lfrow.clk{cursor:pointer;border-radius:6px;padding:2px 4px;transition:background .15s}
   .lfrow.clk:hover{background:#eef3fb}
   .lfrow.clk.sel{background:#e4edfb;box-shadow:inset 0 0 0 1px #cfe0ff}
-  .commwrap{display:flex;gap:12px;overflow:hidden}
-  .commdrawer{flex:0 0 0;width:0;opacity:0;overflow:hidden;transition:all .35s ease;
-    background:#fff;border:1px solid #e3e8f0;border-radius:11px}
+  .commwrap{display:flex;gap:12px;overflow:hidden;align-items:flex-start}
+  .commdrawer{flex:0 0 0;width:0;opacity:0;overflow:hidden;
+    transition:flex-basis .3s ease, width .3s ease, opacity .25s ease;
+    background:#fff;border:1px solid #e3e8f0;border-radius:11px;align-self:start}
   .commdrawer.open{flex:0 0 300px;width:300px;opacity:1;padding:13px 14px;margin-left:0}
   @media(max-width:800px){.commdrawer.open{flex-basis:100%;width:100%}}
   .commdrawer h5{margin:0 0 8px;font-size:13px;color:#17202c;font-weight:800}
