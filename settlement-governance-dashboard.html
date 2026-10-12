@@ -111,6 +111,10 @@
   .vtl-mark{flex:0 0 auto;align-self:center;font-size:11px;font-weight:800;color:var(--ink);text-align:center;padding:0 6px}
   .vtl-mark small{font-weight:500;color:var(--muted);font-size:10px}
   .vtl-void{color:var(--bad)}
+  .proposed{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.5px;background:rgba(155,123,255,.18);
+    color:var(--purple);border:1px solid rgba(155,123,255,.45);border-radius:6px;padding:2px 8px;margin-left:8px;vertical-align:middle;text-transform:uppercase}
+  .reminder-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+  @media(max-width:700px){.reminder-grid{grid-template-columns:1fr}}
   /* light funnel bars for report */
   .lfun{display:flex;flex-direction:column;gap:7px}
   .lfrow{display:grid;grid-template-columns:120px 1fr 70px;align-items:center;gap:9px;font-size:12px;color:#39424f}
@@ -352,18 +356,51 @@
     <h3>Small differences (±₹300) are allowed to close — not void
       <a class="seelogic" href="#logic-tolerance" onclick="goLogic('chart-tolerance')">See logic ▸</a>
     </h3>
-    <p class="hint">System may close a case if collected is within the tolerance band of the agreed amount. A case must NOT void just because of a ₹100–300 gap.</p>
+    <p class="hint">A case closes if the shortfall is <b>₹300 or less</b>. A case must NOT void just because the customer paid up to ₹300 short.</p>
     <table>
-      <thead><tr><th>Closure pattern</th><th class="num">Cases</th><th class="num">₹ difference</th><th>Status</th></tr></thead>
+      <thead><tr><th>Closure pattern</th><th class="num">Cases</th><th>Status</th></tr></thead>
       <tbody>
-        <tr><td>Collected = agreed (exact)</td><td class="num">431</td><td class="num">₹0</td><td><span class="tag t-grn">Clean</span></td></tr>
-        <tr><td>Closed within tolerance — short (customer paid up to ₹300 less)</td><td class="num">52</td><td class="num">−₹100 to −₹300</td><td><span class="tag t-grn">Allowed</span></td></tr>
-        <tr><td>Closed within tolerance — excess (customer paid up to ₹300 more)</td><td class="num">17</td><td class="num">+₹100 to +₹300</td><td><span class="tag t-grn">Allowed</span></td></tr>
-        <tr><td><b>Voided despite being within tolerance</b> (should have closed)</td><td class="num">4</td><td class="num">≤ ₹300 gap</td><td><span class="tag t-red">Control failure</span></td></tr>
-        <tr><td>Difference beyond tolerance (&gt; ₹300) — not auto-closed</td><td class="num">11</td><td class="num">&gt; ₹300</td><td><span class="tag t-amb">Review</span></td></tr>
+        <tr><td>Collected = agreed (exact)</td><td class="num">431</td><td><span class="tag t-grn">Clean</span></td></tr>
+        <tr><td>Short by ₹300 or less — allowed to close</td><td class="num">69</td><td><span class="tag t-grn">Allowed</span></td></tr>
+        <tr><td><b>Voided despite being short by ₹300 or less</b> (should have closed)</td><td class="num">4</td><td><span class="tag t-red">Control failure</span></td></tr>
+        <tr><td>Short by more than ₹300 — not auto-closed</td><td class="num">11</td><td><span class="tag t-amb">Review</span></td></tr>
       </tbody>
     </table>
-    <div class="why"><b>Why it matters:</b> A tiny ₹100–300 gap should close the case, not void it. Row 4 is the real problem — cases that wrongly voided over a trivial amount. Those should have auto-closed; each one needs a fix. Row 5 (gap &gt; ₹300) is a genuine exception for manual review.</div>
+    <div class="why"><b>Why it matters:</b> A shortfall of ₹300 or less should close the case, not void it. Row 3 is the real problem — cases that wrongly voided despite being within ₹300. Those should have auto-closed. Row 4 (short by more than ₹300) is a genuine exception for manual review.</div>
+  </div>
+
+  <!-- ============ PROPOSED: PRE-PAYMENT REMINDER COMMUNICATION ============ -->
+  <div class="section-title">Pre-payment reminder communication <span class="proposed">Proposed — not yet in workflow</span></div>
+  <div class="card" id="chart-reminder">
+    <h3>Remind the customer to pay — one day before (T-1) and on the day (T-0)
+      <a class="seelogic" href="#logic-reminder" onclick="goLogic('chart-reminder')">See logic ▸</a>
+    </h3>
+    <p class="hint"><b>Proposed control (not live yet):</b> send a payment reminder SMS to the primary applicant on <b>T-1</b> (day before the payment date) and <b>T-0</b> (the payment date), so fewer cases drift into grace / void for simply forgetting to pay.</p>
+
+    <div class="reminder-grid">
+      <div class="kpi"><div class="label">Payment dates due (next 7 days)</div><div class="value">63</div><div class="sub">upcoming tranche/final dates</div></div>
+      <div class="kpi"><div class="label">T-1 reminders due today</div><div class="value" style="color:var(--warn)">19</div><div class="sub">day-before nudge</div></div>
+      <div class="kpi"><div class="label">T-0 reminders due today</div><div class="value" style="color:var(--accent)">14</div><div class="sub">pay-today nudge</div></div>
+    </div>
+
+    <table>
+      <thead><tr><th>Reminder</th><th>Timing</th><th class="num">Due</th><th class="num">Sent</th><th class="num">Pending</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Day-before reminder</td><td>T-1 (1 day before payment date)</td><td class="num">19</td><td class="num">0</td><td class="num">19</td><td><span class="tag t-amb">Proposed</span></td></tr>
+        <tr><td>Same-day reminder</td><td>T-0 (on the payment date)</td><td class="num">14</td><td class="num">0</td><td class="num">14</td><td><span class="tag t-amb">Proposed</span></td></tr>
+      </tbody>
+    </table>
+
+    <h4 style="margin:16px 0 6px;font-size:13px;color:var(--muted)">Upcoming payment dates — reminder schedule (sample)</h4>
+    <table>
+      <thead><tr><th>Case</th><th>Payment date</th><th class="num">Amount due (₹)</th><th>T-1 reminder</th><th>T-0 reminder</th></tr></thead>
+      <tbody>
+        <tr><td>LN-4471</td><td>13 Oct 2026</td><td class="num">48,500</td><td><span class="tag t-amb">due tomorrow</span></td><td><span class="tag t-grn">—</span></td></tr>
+        <tr><td>LN-4472</td><td>12 Oct 2026</td><td class="num">1,12,000</td><td><span class="tag t-grn">sent (proposed)</span></td><td><span class="tag t-amb">due today</span></td></tr>
+        <tr><td>LN-4480</td><td>14 Oct 2026</td><td class="num">36,750</td><td><span class="tag t-grn">—</span></td><td><span class="tag t-grn">—</span></td></tr>
+      </tbody>
+    </table>
+    <div class="why"><b>Why it matters:</b> Many voids happen simply because the customer forgot the payment date — not because they can’t pay. A T-1 and T-0 reminder is a cheap, proactive nudge that should lift on-time payment and cut avoidable voids. Shown here as a <b>proposed</b> view so you can socialise it before building it into the workflow.</div>
   </div>
 
   <!-- ============ LOGIC / CALCULATION REFERENCE ============ -->
@@ -426,13 +463,25 @@
     </ul>
   </div>
 
+  <div class="logicblock" id="logic-reminder">
+    <h3>Pre-payment reminder (proposed) <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <ul>
+      <li><b>Status: proposed</b> — not yet in the live workflow.</li>
+      <li><code>T-1 reminder date = Payment date − 1 day</code> (day-before nudge).</li>
+      <li><code>T-0 reminder date = Payment date</code> (same-day nudge).</li>
+      <li>Reminder goes to the <b>primary applicant</b> (payment is the applicant’s responsibility).</li>
+      <li>Works for a single final payment or multiple tranche dates — one T-1/T-0 pair per payment date.</li>
+      <li>Goal: reduce avoidable voids caused by the customer simply forgetting the date.</li>
+    </ul>
+  </div>
+
   <div class="logicblock" id="logic-tolerance">
     <h3>Closure tolerance (collected vs agreed) <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
     <ul>
-      <li><code>Difference = Collected amount − Agreed amount</code></li>
-      <li>If <code>|Difference| ≤ ₹300</code> → the case is <b>allowed to close</b> (must not void over a trivial gap).</li>
-      <li><b>Control failure</b> = a case that voided even though <code>|Difference| ≤ ₹300</code> → should have auto-closed.</li>
-      <li>If <code>|Difference| &gt; ₹300</code> → not auto-closed; routed for manual review.</li>
+      <li><code>Shortfall = Agreed amount − Collected amount</code></li>
+      <li>If <code>Shortfall ≤ ₹300</code> → the case is <b>allowed to close</b> (must not void over a small shortfall). Max tolerance = ₹300.</li>
+      <li><b>Control failure</b> = a case that voided even though <code>Shortfall ≤ ₹300</code> → should have auto-closed.</li>
+      <li>If <code>Shortfall &gt; ₹300</code> → not auto-closed; routed for manual review.</li>
     </ul>
   </div>
 
