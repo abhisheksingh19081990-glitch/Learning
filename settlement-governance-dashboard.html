@@ -57,6 +57,21 @@
   .vhead{font-size:13px;font-weight:800;letter-spacing:.6px;color:#17202c;text-transform:uppercase;
     border-bottom:2px solid #2f6fd0;padding-bottom:7px;margin:0 0 12px;display:inline-block}
   .vhead span{color:#5b6676;font-weight:600;letter-spacing:0;text-transform:none}
+  /* clickable stage rows + horizontal communication drawer */
+  .lfrow.clk{cursor:pointer;border-radius:6px;padding:2px 4px;transition:background .15s}
+  .lfrow.clk:hover{background:#eef3fb}
+  .lfrow.clk.sel{background:#e4edfb;box-shadow:inset 0 0 0 1px #cfe0ff}
+  .commwrap{display:flex;gap:12px;overflow:hidden}
+  .commdrawer{flex:0 0 0;width:0;opacity:0;overflow:hidden;transition:all .35s ease;
+    background:#fff;border:1px solid #e3e8f0;border-radius:11px}
+  .commdrawer.open{flex:0 0 300px;width:300px;opacity:1;padding:13px 14px;margin-left:0}
+  @media(max-width:800px){.commdrawer.open{flex-basis:100%;width:100%}}
+  .commdrawer h5{margin:0 0 8px;font-size:13px;color:#17202c;font-weight:800}
+  .commdrawer .crow{display:flex;justify-content:space-between;font-size:12px;color:#39424f;padding:5px 0;border-bottom:1px solid #eef1f7}
+  .commdrawer .crow b{color:#17202c}
+  .commdrawer .cflag{margin-top:8px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;display:inline-block}
+  .cf-ok{background:#e3f5ec;color:#1aa06d}.cf-bad{background:#fde6e8;color:#e14b57}
+  .tiphint{font-size:11px;color:#8a93a3;margin-top:6px}
   /* light funnel bars for report */
   .lfun{display:flex;flex-direction:column;gap:7px}
   .lfrow{display:grid;grid-template-columns:120px 1fr 70px;align-items:center;gap:9px;font-size:12px;color:#39424f}
@@ -144,7 +159,13 @@
     <div class="rvis">
       <div class="vcard">
         <h4 class="vhead">STAGE FLOW <span id="sf_month">(Aug 2026)</span></h4>
-        <div class="lfun" id="stageFlow"></div>
+        <div class="commwrap">
+          <div style="flex:1">
+            <div class="lfun" id="stageFlow"></div>
+            <div class="tiphint">👆 Click a stage to see its SMS communication detail →</div>
+          </div>
+          <div class="commdrawer" id="commDrawer"></div>
+        </div>
       </div>
       <div class="vcard">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -174,7 +195,7 @@
   <div class="section-title">Consent completeness — digital + manual must equal initiated</div>
   <div class="card">
     <h3>Every initiated case must carry a consent (digital OR manual)</h3>
-    <p class="hint">Hover or tap the bar below to see the digital vs manual breakup. Rule: <code>digital + manual = initiated</code>; any gap = cases with no consent.</p>
+    <p class="hint">Breakup shown below (click the bar to collapse/expand). Rule: <code>digital + manual = initiated</code>; any gap = cases with no consent.</p>
 
     <!-- interactive stacked bar: hover/click shows breakup -->
     <div class="consentbar" id="consentBar" onclick="toggleConsent()">
@@ -191,7 +212,7 @@
     </div>
 
     <!-- breakup panel revealed on hover/click -->
-    <div class="breakup" id="consentBreak">
+    <div class="breakup open" id="consentBreak">
       <table>
         <thead><tr><th>Consent type</th><th class="num">Cases</th><th class="num">% of initiated</th><th>Check</th></tr></thead>
         <tbody>
@@ -225,19 +246,19 @@
   <div class="grid g2">
     <div class="card">
       <h3>Party coverage &amp; SMS delivery</h3>
-      <p class="hint">Monitoring applicant and co-applicant separately across the cohort.</p>
+      <p class="hint"><b>How to read:</b> go top-to-bottom — it narrows from “party exists” → “has a number” → “actually got the SMS”, for applicant vs co-applicant side by side. The gaps show where the co-applicant drops off.</p>
       <table>
-        <thead><tr><th>Measure</th><th class="num">Applicant</th><th class="num">Co-applicant</th></tr></thead>
+        <thead><tr><th>Step (narrows down)</th><th class="num">Applicant</th><th class="num">Co-applicant</th><th>Read as</th></tr></thead>
         <tbody>
-          <tr><td>Cases with this party</td><td class="num">1,000</td><td class="num">612</td></tr>
-          <tr><td>Mobile number present</td><td class="num">1,000</td><td class="num">518</td></tr>
-          <tr><td>Mobile number NULL / missing</td><td class="num">0</td><td class="num">94</td></tr>
-          <tr><td>Initiation SMS delivered</td><td class="num">991</td><td class="num">501</td></tr>
-          <tr><td>Approval SMS delivered</td><td class="num">654</td><td class="num">398</td></tr>
-          <tr><td>Delivery failures (valid number)</td><td class="num">9</td><td class="num">17</td></tr>
+          <tr><td>1. Party exists on the case</td><td class="num">1,000</td><td class="num">612</td><td style="color:var(--muted);font-size:12px">388 cases have no co-applicant</td></tr>
+          <tr><td>2. Mobile number present</td><td class="num">1,000</td><td class="num">518</td><td style="color:var(--muted);font-size:12px">of those who exist</td></tr>
+          <tr><td>3. Mobile number NULL / missing</td><td class="num">0</td><td class="num">94</td><td><span class="tag t-amb">94 co-app no number</span></td></tr>
+          <tr><td>4. Initiation SMS delivered</td><td class="num">991</td><td class="num">501</td><td style="color:var(--muted);font-size:12px">of those with a number</td></tr>
+          <tr><td>5. Approval SMS delivered</td><td class="num">654</td><td class="num">398</td><td style="color:var(--muted);font-size:12px">of those approved</td></tr>
+          <tr><td>6. Delivery failed (valid number)</td><td class="num">9</td><td class="num">17</td><td><span class="tag t-red">real breaches</span></td></tr>
         </tbody>
       </table>
-      <div class="why"><b>Why it matters:</b> The co-applicant is missed most often — number NULL or SMS fails. Watching both parties makes sure neither is skipped.</div>
+      <div class="why"><b>Why it matters:</b> The co-applicant drops off most — 94 have no number, and 17 had a number but the SMS still failed (row 6). Those 17 are the real misses to fix; the rest is explained by “no co-applicant” or “no number”.</div>
     </div>
 
     <div class="card">
@@ -325,17 +346,35 @@
     'Aug 2026':{
       init:1000, cons:860, appr:660, sett:500, wd:120, fv:7, fs:14,
       consSmsOk:true, apprSms:648, apprShort:12,
-      voidDay:[{l:'1',v:0.4},{l:'5',v:0.6},{l:'10',v:0.5},{l:'15',v:0.9},{l:'20',v:0.7},{l:'25',v:1.2,hot:true},{l:'30',v:0.8}]
+      voidDay:[{l:'1',v:0.4},{l:'5',v:0.6},{l:'10',v:0.5},{l:'15',v:0.9},{l:'20',v:0.7},{l:'25',v:1.2,hot:true},{l:'30',v:0.8}],
+      comm:{
+        'Settlement initiated':{sms:true,app:1000,coapp:612,total:1612,unique:1398,delivered:1372,failed:26},
+        'Consent received':    {sms:false,note:'No SMS at this stage (consent is a response, not a trigger).'},
+        'Settlement approved': {sms:true,app:660,coapp:398,total:1058,unique:1046,delivered:1034,failed:12},
+        'Settled & closed':    {sms:true,app:500,coapp:300,total:800,unique:792,delivered:788,failed:4}
+      }
     },
     'Sep 2026':{
       init:1180, cons:1040, appr:815, sett:640, wd:96, fv:3, fs:6,
       consSmsOk:true, apprSms:812, apprShort:3,
-      voidDay:[{l:'1',v:0.3},{l:'5',v:0.4},{l:'10',v:0.6},{l:'15',v:0.5},{l:'20',v:0.8},{l:'25',v:0.6},{l:'30',v:0.5}]
+      voidDay:[{l:'1',v:0.3},{l:'5',v:0.4},{l:'10',v:0.6},{l:'15',v:0.5},{l:'20',v:0.8},{l:'25',v:0.6},{l:'30',v:0.5}],
+      comm:{
+        'Settlement initiated':{sms:true,app:1180,coapp:720,total:1900,unique:1662,delivered:1651,failed:11},
+        'Consent received':    {sms:false,note:'No SMS at this stage (consent is a response, not a trigger).'},
+        'Settlement approved': {sms:true,app:815,coapp:498,total:1313,unique:1301,delivered:1298,failed:3},
+        'Settled & closed':    {sms:true,app:640,coapp:384,total:1024,unique:1018,delivered:1016,failed:2}
+      }
     },
     'Jul 2026':{
       init:910, cons:742, appr:548, sett:402, wd:138, fv:11, fs:21,
       consSmsOk:false, apprSms:521, apprShort:27,
-      voidDay:[{l:'1',v:0.6},{l:'5',v:0.9},{l:'10',v:0.7},{l:'15',v:1.1},{l:'20',v:1.4,hot:true},{l:'25',v:1.0},{l:'30',v:0.9}]
+      voidDay:[{l:'1',v:0.6},{l:'5',v:0.9},{l:'10',v:0.7},{l:'15',v:1.1},{l:'20',v:1.4,hot:true},{l:'25',v:1.0},{l:'30',v:0.9}],
+      comm:{
+        'Settlement initiated':{sms:true,app:910,coapp:560,total:1470,unique:1282,delivered:1240,failed:42},
+        'Consent received':    {sms:false,note:'No SMS at this stage (consent is a response, not a trigger).'},
+        'Settlement approved': {sms:true,app:548,coapp:331,total:879,unique:866,delivered:839,failed:27},
+        'Settled & closed':    {sms:true,app:402,coapp:240,total:642,unique:636,delivered:628,failed:8}
+      }
     }
   };
   // void-rate month-on-month trend (context series, highlights selected month)
@@ -359,12 +398,14 @@
     document.getElementById('k_wd').textContent=fmt(d.wd);
     document.getElementById('k_fv').textContent=fmt(d.fv);
     document.getElementById('k_fs').textContent=fmt(d.fs);
-    // stage flow (exec)
+    // stage flow (exec) — clickable rows open the communication drawer
     var stages=[['Settlement initiated',d.init],['Consent received',d.cons],['Settlement approved',d.appr],['Settled & closed',d.sett]];
     document.getElementById('stageFlow').innerHTML=stages.map(function(s){
       var w=Math.round(s[1]/d.init*100);
-      return '<div class="lfrow"><span>'+s[0]+'</span><div class="lftrack"><div class="lffill" style="width:'+w+'%"></div></div><span class="lfnum">'+fmt(s[1])+'</span></div>';
+      return '<div class="lfrow clk" data-stage="'+s[0]+'" onclick="showComm(this,\''+s[0].replace(/'/g,"")+'\')"><span>'+s[0]+'</span><div class="lftrack"><div class="lffill" style="width:'+w+'%"></div></div><span class="lfnum">'+fmt(s[1])+'</span></div>';
     }).join('');
+    // close any open drawer when month changes
+    document.getElementById('commDrawer').classList.remove('open');
     // waterfall (detailed, case level)
     var consMatch=d.consSmsOk?'<span class="match-ok">SMS '+fmt(d.cons)+' ✓ match</span>':'<span class="match-bad">'+(d.init-d.cons)+' pending ⚠</span>';
     var apprMatch=d.apprShort>0?'<span class="match-bad">SMS '+fmt(d.apprSms)+' ⚠ '+d.apprShort+' short</span>':'<span class="match-ok">SMS '+fmt(d.appr)+' ✓ match</span>';
@@ -383,8 +424,36 @@
     setVoid(curMode); // refresh void chart (day view is month-specific)
   }
 
-  // consent breakup toggle (hover handled by CSS)
+  // consent breakup toggle (open by default; click to collapse)
   function toggleConsent(){document.getElementById('consentBreak').classList.toggle('open');}
+
+  // stage-wise communication drawer (opens horizontally beside Stage Flow)
+  function showComm(rowEl,stage){
+    var m=document.getElementById('month').value, c=DATA[m].comm[stage];
+    var drawer=document.getElementById('commDrawer');
+    document.querySelectorAll('.lfrow.clk').forEach(function(r){r.classList.remove('sel');});
+    // clicking the already-selected row closes the drawer
+    if(drawer.classList.contains('open') && drawer.dataset.stage===stage){
+      drawer.classList.remove('open'); drawer.dataset.stage=''; return;
+    }
+    rowEl.classList.add('sel'); drawer.dataset.stage=stage;
+    var html='<h5>'+stage+' — SMS communication</h5>';
+    if(!c.sms){
+      html+='<div class="tiphint">'+c.note+'</div>';
+    } else {
+      var rate=Math.round(c.delivered/c.unique*1000)/10;
+      html+=''+
+        '<div class="crow"><span>SMS triggered</span><b>Yes</b></div>'+
+        '<div class="crow"><span>Applicant numbers</span><b>'+fmt(c.app)+'</b></div>'+
+        '<div class="crow"><span>Co-applicant numbers</span><b>'+fmt(c.coapp)+'</b></div>'+
+        '<div class="crow"><span>Total numbers targeted</span><b>'+fmt(c.total)+'</b></div>'+
+        '<div class="crow"><span>Unique numbers (after de-dup)</span><b>'+fmt(c.unique)+'</b></div>'+
+        '<div class="crow"><span>Delivered</span><b>'+fmt(c.delivered)+'</b></div>'+
+        '<div class="crow"><span>Failed</span><b style="color:#e14b57">'+fmt(c.failed)+'</b></div>'+
+        '<span class="cflag '+(c.failed===0?'cf-ok':'cf-bad')+'">Delivery rate '+rate+'%'+(c.failed>0?' · '+fmt(c.failed)+' failed':' · all delivered')+'</span>';
+    }
+    drawer.innerHTML=html; drawer.classList.add('open');
+  }
 
   // void chart: month-on-month trend, or day-wise for selected month
   function setVoid(mode){
