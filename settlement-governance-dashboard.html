@@ -192,9 +192,9 @@
 
     <div class="tiles">
       <div class="tile"><div class="strip s-blue"></div><div class="tlabel">Settlement initiated</div><div class="tval" id="k_init">1,000</div><div class="tsub">unique cases</div></div>
-      <div class="tile"><div class="strip s-teal"></div><div class="tlabel">Consent received</div><div class="tval" id="k_cons">860</div><div class="tsub" id="k_cons_s">86% of initiated</div></div>
-      <div class="tile"><div class="strip s-green"></div><div class="tlabel">Settled &amp; closed</div><div class="tval" id="k_sett">500</div><div class="tsub" id="k_sett_s">50% of initiated</div></div>
+      <div class="tile"><div class="strip s-teal"></div><div class="tlabel">Consent sent</div><div class="tval" id="k_cons">860</div><div class="tsub" id="k_cons_s">86% of initiated</div></div>
       <div class="tile"><div class="strip s-purple"></div><div class="tlabel">Withdrawn</div><div class="tval" id="k_wd">120</div><div class="tsub">pre-approval</div></div>
+      <div class="tile"><div class="strip s-green"></div><div class="tlabel">Settled &amp; closed</div><div class="tval" id="k_sett">500</div><div class="tsub" id="k_sett_s">50% of initiated</div></div>
       <div class="tile"><div class="strip s-red"></div><div class="tlabel">False voids</div><div class="tval" id="k_fv">7</div><div class="tsub">flag-sync caused</div></div>
       <div class="tile"><div class="strip s-amber"></div><div class="tlabel">Flag-sync breach</div><div class="tval" id="k_fs">14</div><div class="tsub">&gt;7 min to LMS</div></div>
     </div>
@@ -233,7 +233,12 @@
     <p class="hint">Counts are at <b>case level</b> (one row = one unique settlement case). Blue = progressing; purple = exited (withdrawn). The right column shows whether SMS / counts tie out.</p>
     <div id="waterfall"></div>
     <div class="legend"><span><span class="dot" style="background:#36c0bf"></span>Progressing</span><span><span class="dot" style="background:#9b7bff"></span>Exited</span><span class="match-ok">✓ match</span><span class="match-bad">⚠ mismatch / breach</span></div>
-    <div class="why"><b>Why it matters:</b> Each stage is checked against the same month's cases. Any line that doesn't match is a red flag to chase.</div>
+
+    <h4 style="margin:18px 0 6px;font-size:13px;color:var(--muted)">Outcome reconciliation — every initiated case lands in exactly one bucket</h4>
+    <p class="hint">Withdrawal can happen at more than one point (after initiation, after consent, after recommendation). This block shows where, and the buckets add back to the initiated total.</p>
+    <table id="outcomeTable"></table>
+
+    <div class="why"><b>Why it matters:</b> A withdrawal after consent is still a valid exit — this block captures it and keeps the maths honest: withdrawn (by stage) + still in progress + approved = initiated. If the total doesn't tie to the top, a case has been lost or double-counted.</div>
   </div>
 
   <!-- ============ CONSENT COMPLETENESS: DIGITAL + MANUAL = INITIATED ============ -->
@@ -407,12 +412,13 @@
   <div class="section-title" id="logic-section">Logic &amp; calculation reference</div>
 
   <div class="logicblock" id="logic-waterfall">
-    <h3>Monthly cohort waterfall <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <h3>Monthly cohort waterfall &amp; outcome reconciliation <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
     <ul>
       <li><b>Cohort</b> = all cases where <code>settlement_initiated_date</code> falls in the selected month.</li>
-      <li>Each stage counts that <b>same</b> cohort as it reaches the stage (a subset — the funnel narrows, it does not add up).</li>
-      <li><code>Consent gap = Settlement initiated − Consent SMS fired</code></li>
-      <li><code>Approval SMS short = Approved cases − Approval SMS actually sent</code></li>
+      <li>Each stage counts that <b>same</b> cohort as it reaches the stage (a subset — the funnel narrows).</li>
+      <li><b>Consent initiated</b> = consent raised, digital <b>or</b> manual. <code>Consent gap = Initiated − Consent initiated</code>.</li>
+      <li><b>Withdrawal can happen at several points</b> — after initiation, after consent, or after recommendation (any time before approval).</li>
+      <li><b>Outcome reconciliation:</b> <code>Withdrawn(after init) + Withdrawn(after consent) + Withdrawn(after reco) + In progress + Approved = Initiated</code>. Every case lands in exactly one terminal bucket, so the total ties back to the top funnel.</li>
       <li>Counts are at <b>case level</b> (one row = one unique settlement case).</li>
     </ul>
   </div>
@@ -502,12 +508,14 @@
       },
       comm:{
         'Settlement initiated':{sms:true,who:'both',app:1000,coapp:612,total:1612,unique:1398,sent:1372,notsent:26,nsApp:11,nsCo:15},
-        'Consent SMS initiated':{sms:true,who:'applicant',app:1000,coapp:0,unique:1000,sent:860,notsent:140,nsApp:140,nsCo:0,gapVsInit:140},
+        'Consent initiated':{sms:true,who:'applicant',app:1000,coapp:0,unique:1000,sent:860,notsent:140,nsApp:140,nsCo:0,gapVsInit:140},
         'Settlement approved': {sms:true,who:'both',app:660,coapp:398,total:1058,unique:1046,sent:1034,notsent:12,nsApp:5,nsCo:7},
         'Settled & closed':    {sms:true,who:'both',app:500,coapp:300,total:800,unique:792,sent:788,notsent:4,nsApp:1,nsCo:3}
       },
       // payment & void breakup — must sum to approved (660)
-      pv:{paid:500, within90:96, grace:18, voidGenuine:39, voidFalse:7}
+      pv:{paid:500, within90:96, grace:18, voidGenuine:39, voidFalse:7},
+      // withdrawals by where they happened + still-in-progress; outcome reconciles to init (1000)
+      wd:{afterInit:40, afterConsent:72, afterReco:8, inProgress:220}
     },
     'Sep 2026':{
       init:1180, cons:1040, appr:815, sett:640, wd:96, fv:3, fs:6,
@@ -520,12 +528,14 @@
       },
       comm:{
         'Settlement initiated':{sms:true,who:'both',app:1180,coapp:720,total:1900,unique:1662,sent:1651,notsent:11,nsApp:5,nsCo:6},
-        'Consent SMS initiated':{sms:true,who:'applicant',app:1180,coapp:0,unique:1180,sent:1040,notsent:140,nsApp:140,nsCo:0,gapVsInit:140},
+        'Consent initiated':{sms:true,who:'applicant',app:1180,coapp:0,unique:1180,sent:1040,notsent:140,nsApp:140,nsCo:0,gapVsInit:140},
         'Settlement approved': {sms:true,who:'both',app:815,coapp:498,total:1313,unique:1301,sent:1298,notsent:3,nsApp:1,nsCo:2},
         'Settled & closed':    {sms:true,who:'both',app:640,coapp:384,total:1024,unique:1018,sent:1016,notsent:2,nsApp:1,nsCo:1}
       },
       // payment & void breakup — must sum to approved (815)
-      pv:{paid:640, within90:120, grace:22, voidGenuine:30, voidFalse:3}
+      pv:{paid:640, within90:120, grace:22, voidGenuine:30, voidFalse:3},
+      // outcome reconciles to init (1180): 815 approved + 96 withdrawn + 269 in progress
+      wd:{afterInit:30, afterConsent:58, afterReco:8, inProgress:269}
     },
     'Jul 2026':{
       init:910, cons:742, appr:548, sett:402, wd:138, fv:11, fs:21,
@@ -538,12 +548,14 @@
       },
       comm:{
         'Settlement initiated':{sms:true,who:'both',app:910,coapp:560,total:1470,unique:1282,sent:1240,notsent:42,nsApp:18,nsCo:24},
-        'Consent SMS initiated':{sms:true,who:'applicant',app:910,coapp:0,unique:910,sent:742,notsent:168,nsApp:168,nsCo:0,gapVsInit:168},
+        'Consent initiated':{sms:true,who:'applicant',app:910,coapp:0,unique:910,sent:742,notsent:168,nsApp:168,nsCo:0,gapVsInit:168},
         'Settlement approved': {sms:true,who:'both',app:548,coapp:331,total:879,unique:866,sent:839,notsent:27,nsApp:12,nsCo:15},
         'Settled & closed':    {sms:true,who:'both',app:402,coapp:240,total:642,unique:636,sent:628,notsent:8,nsApp:3,nsCo:5}
       },
       // payment & void breakup — must sum to approved (548)
-      pv:{paid:402, within90:60, grace:13, voidGenuine:62, voidFalse:11}
+      pv:{paid:402, within90:60, grace:13, voidGenuine:62, voidFalse:11},
+      // outcome reconciles to init (910): 548 approved + 138 withdrawn + 224 in progress
+      wd:{afterInit:46, afterConsent:84, afterReco:8, inProgress:224}
     }
   };
   // void-rate month-on-month trend (context series, highlights selected month)
@@ -555,6 +567,7 @@
 
   function renderMonth(){
     var m=document.getElementById('month').value, d=DATA[m];
+    var wdTot=d.wd.afterInit+d.wd.afterConsent+d.wd.afterReco; // total withdrawn (all pre-approval points)
     // labels
     document.getElementById('m1').textContent=m;
     document.getElementById('sf_month').textContent='('+m+')';
@@ -564,11 +577,11 @@
     document.getElementById('k_cons_s').textContent=pct(d.cons,d.init)+'% of initiated';
     document.getElementById('k_sett').textContent=fmt(d.sett);
     document.getElementById('k_sett_s').textContent=pct(d.sett,d.init)+'% of initiated';
-    document.getElementById('k_wd').textContent=fmt(d.wd);
+    document.getElementById('k_wd').textContent=fmt(wdTot);
     document.getElementById('k_fv').textContent=fmt(d.fv);
     document.getElementById('k_fs').textContent=fmt(d.fs);
     // stage flow (exec) — clickable rows open the communication drawer
-    var stages=[['Settlement initiated',d.init],['Consent SMS initiated',d.cons],['Settlement approved',d.appr],['Settled & closed',d.sett]];
+    var stages=[['Settlement initiated',d.init],['Consent initiated',d.cons],['Settlement approved',d.appr],['Settled & closed',d.sett]];
     document.getElementById('stageFlow').innerHTML=stages.map(function(s){
       var w=Math.round(s[1]/d.init*100);
       return '<div class="lfrow clk" data-stage="'+s[0]+'" onclick="showComm(this,\''+s[0].replace(/'/g,"")+'\')"><span>'+s[0]+'</span><div class="lftrack"><div class="lffill" style="width:'+w+'%"></div></div><span class="lfnum">'+fmt(s[1])+'</span></div>';
@@ -580,8 +593,8 @@
     var apprMatch=d.apprShort>0?'<span class="match-bad">SMS '+fmt(d.apprSms)+' ⚠ '+d.apprShort+' short</span>':'<span class="match-ok">SMS '+fmt(d.appr)+' ✓ match</span>';
     var rows=[
       {n:'Settlement initiated',s:'consent SMS fired',w:100,exit:false,num:'<b>'+fmt(d.init)+'</b> cases<br><span class="match-ok">SMS '+fmt(d.init)+' ✓ match</span>'},
-      {n:'Consent SMS initiated',s:'consent SMS fired to customers',w:Math.round(d.cons/d.init*100),exit:false,num:'<b>'+fmt(d.cons)+'</b> SMS fired<br>'+(d.init-d.cons>0?'<span class="match-bad">'+(d.init-d.cons)+' not yet fired ⚠</span>':'<span class="match-ok">✓ match</span>')},
-      {n:'Withdrawn before approval',s:'withdrawal SMS must match',w:Math.round(d.wd/d.init*100),exit:true,num:'<b>'+fmt(d.wd)+'</b> withdrawn<br><span class="match-ok">SMS '+fmt(d.wd)+' ✓ match</span>'},
+      {n:'Consent initiated',s:'consent raised (digital or manual)',w:Math.round(d.cons/d.init*100),exit:false,num:'<b>'+fmt(d.cons)+'</b> consents<br>'+(d.init-d.cons>0?'<span class="match-bad">'+(d.init-d.cons)+' not yet done ⚠</span>':'<span class="match-ok">✓ match</span>')},
+      {n:'Withdrawn before approval',s:'can happen after initiation, consent or recommendation',w:Math.round(wdTot/d.init*100),exit:true,num:'<b>'+fmt(wdTot)+'</b> withdrawn<br><span class="match-ok">SMS '+fmt(wdTot)+' ✓ match</span>'},
       {n:'Settlement approved',s:'flag to LMS; SMS app + co-app',w:Math.round(d.appr/d.init*100),exit:false,num:'<b>'+fmt(d.appr)+'</b> approved<br>'+apprMatch},
       {n:'Settled & closed',s:'end state (SOA)',w:Math.round(d.sett/d.init*100),exit:false,num:'<b>'+fmt(d.sett)+'</b> settled'}
     ];
@@ -590,6 +603,17 @@
         '<div class="wf-track"><div class="wf-fill '+(r.exit?'wf-exit':'wf-stay')+'" style="width:'+r.w+'%"></div></div>'+
         '<div class="wf-num">'+r.num+'</div></div>';
     }).join('');
+    // outcome reconciliation — withdrawn by stage + in progress + approved = initiated
+    var w=d.wd, outTot=w.afterInit+w.afterConsent+w.afterReco+w.inProgress+d.appr;
+    document.getElementById('outcomeTable').innerHTML=
+      '<thead><tr><th>Terminal outcome (of '+fmt(d.init)+' initiated)</th><th class="num">Cases</th><th class="num">% of initiated</th></tr></thead><tbody>'+
+      '<tr><td>Withdrawn — after initiation (before consent)</td><td class="num">'+fmt(w.afterInit)+'</td><td class="num">'+pct(w.afterInit,d.init)+'%</td></tr>'+
+      '<tr><td>Withdrawn — after consent (before approval)</td><td class="num">'+fmt(w.afterConsent)+'</td><td class="num">'+pct(w.afterConsent,d.init)+'%</td></tr>'+
+      '<tr><td>Withdrawn — after recommendation (before approval)</td><td class="num">'+fmt(w.afterReco)+'</td><td class="num">'+pct(w.afterReco,d.init)+'%</td></tr>'+
+      '<tr><td>Still in progress (not yet approved / withdrawn)</td><td class="num">'+fmt(w.inProgress)+'</td><td class="num">'+pct(w.inProgress,d.init)+'%</td></tr>'+
+      '<tr><td>Approved (→ paid / void tracked separately)</td><td class="num">'+fmt(d.appr)+'</td><td class="num">'+pct(d.appr,d.init)+'%</td></tr>'+
+      '<tr class="total"><td>Total (reconciles to initiated)</td><td class="num">'+fmt(outTot)+'</td><td class="num">'+(outTot===d.init?'<span class="tag t-grn">✓ ties</span>':'<span class="tag t-red">⚠ '+fmt(outTot)+' ≠ '+fmt(d.init)+'</span>')+'</td></tr>'+
+      '</tbody>';
     setVoid(curMode); // refresh void chart (day view is month-specific)
     setParty(curPStage); // refresh party waterfall
     // payment & void reconciliation (sums to approved)
