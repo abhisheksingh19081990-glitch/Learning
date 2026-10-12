@@ -17,31 +17,57 @@
   header{padding:28px 32px 18px;border-bottom:1px solid var(--line);}
   header h1{margin:0 0 4px;font-size:24px;letter-spacing:.2px}
   header p{margin:0;color:var(--muted);max-width:1000px;font-size:14px}
-  .monthpick{margin-top:12px;font-size:13px;color:var(--muted)}
-  .monthpick select{background:var(--panel2);color:var(--ink);border:1px solid var(--line);
-    border-radius:7px;padding:6px 10px;font-size:13px;margin-left:6px}
-  .wrap{padding:24px 32px 60px;max-width:1320px;margin:0 auto}
+  .wrap{padding:24px 32px 60px;max-width:1340px;margin:0 auto}
   .section-title{font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);
     margin:34px 0 12px;font-weight:700;border-left:3px solid var(--accent);padding-left:10px}
   .why{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--purple);
     border-radius:8px;padding:11px 14px;margin:10px 0 20px;font-size:13px;color:#cdd6ea}
   .why b{color:#fff}
   .grid{display:grid;gap:16px}
+  .g6{grid-template-columns:repeat(6,1fr)}
   .g4{grid-template-columns:repeat(4,1fr)}
   .g3{grid-template-columns:repeat(3,1fr)}
   .g2{grid-template-columns:repeat(2,1fr)}
-  @media(max-width:1050px){.g4,.g3,.g2{grid-template-columns:repeat(2,1fr)}}
-  @media(max-width:640px){.g4,.g3,.g2{grid-template-columns:1fr}}
+  @media(max-width:1100px){.g6{grid-template-columns:repeat(3,1fr)}.g4,.g3,.g2{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:640px){.g6,.g4,.g3,.g2{grid-template-columns:1fr}}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
   .card h3{margin:0 0 2px;font-size:15px}
   .card .hint{color:var(--muted);font-size:12px;margin:0 0 12px}
-  .kpi .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
-  .kpi .value{font-size:30px;font-weight:700;margin:6px 0 2px}
-  .kpi .sub{font-size:12px;color:var(--muted)}
-  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;margin-top:8px}
-  .p-good{background:rgba(54,192,138,.16);color:var(--good)}
-  .p-warn{background:rgba(242,184,75,.16);color:var(--warn)}
-  .p-bad{background:rgba(239,95,107,.16);color:var(--bad)}
+
+  /* ===== Power BI style report band ===== */
+  .report{background:#f4f6fb;border-radius:14px;padding:18px 18px 22px;color:#1f2733;box-shadow:var(--shadow);margin-bottom:8px}
+  .report .rtop{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px}
+  .report .rtitle{font-size:17px;font-weight:700;color:#1f2733}
+  .report .rtitle small{display:block;font-weight:500;color:#5b6676;font-size:12px}
+  .slicer{display:flex;gap:8px;align-items:center;background:#fff;border:1px solid #d8deea;border-radius:9px;padding:6px 10px;font-size:12px;color:#5b6676}
+  .slicer select{border:none;background:transparent;font-size:12px;color:#1f2733;font-weight:600;outline:none}
+  .tiles{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+  @media(max-width:1100px){.tiles{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:640px){.tiles{grid-template-columns:repeat(2,1fr)}}
+  .tile{background:#fff;border:1px solid #e3e8f0;border-radius:11px;padding:12px 13px;position:relative;overflow:hidden}
+  .tile .tlabel{font-size:11px;color:#6b7686;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  .tile .tval{font-size:26px;font-weight:800;color:#17202c;margin:5px 0 1px;line-height:1}
+  .tile .tsub{font-size:11px;color:#8a93a3}
+  .tile .strip{position:absolute;left:0;top:0;bottom:0;width:4px}
+  .s-blue{background:#2f6fd0}.s-green{background:#1aa06d}.s-amber{background:#e0a022}.s-red{background:#e14b57}.s-purple{background:#7b5bd0}.s-teal{background:#17a9a7}
+  .rvis{display:grid;grid-template-columns:1.3fr 1fr;gap:12px;margin-top:12px}
+  @media(max-width:800px){.rvis{grid-template-columns:1fr}}
+  .vcard{background:#fff;border:1px solid #e3e8f0;border-radius:11px;padding:13px 14px}
+  .vcard h4{margin:0 0 10px;font-size:13px;color:#2a3444}
+  /* light funnel bars for report */
+  .lfun{display:flex;flex-direction:column;gap:7px}
+  .lfrow{display:grid;grid-template-columns:120px 1fr 70px;align-items:center;gap:9px;font-size:12px;color:#39424f}
+  .lftrack{height:20px;background:#eef1f7;border-radius:5px;overflow:hidden}
+  .lffill{height:100%;background:linear-gradient(90deg,#2f6fd0,#17a9a7);border-radius:5px}
+  .lfnum{text-align:right;font-variant-numeric:tabular-nums;color:#39424f}
+  /* light vertical bars */
+  .lvbars{display:flex;align-items:flex-end;gap:9px;height:120px}
+  .lvbar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+  .lvbar .b{width:62%;border-radius:4px 4px 0 0;background:#2f6fd0}
+  .lvbar .b.hot{background:#e14b57}
+  .lvbar .v{font-size:10px;color:#39424f;margin-bottom:3px}
+  .lvbar .l{font-size:10px;color:#8a93a3;margin-top:5px}
+
   table{width:100%;border-collapse:collapse;font-size:13px}
   th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
   th{color:var(--muted);font-weight:600;text-transform:uppercase;font-size:11px;letter-spacing:.5px}
@@ -51,209 +77,179 @@
   .t-red{background:rgba(239,95,107,.16);color:var(--bad)}
   .t-amb{background:rgba(242,184,75,.16);color:var(--warn)}
   .t-grn{background:rgba(54,192,138,.16);color:var(--good)}
-  /* waterfall */
-  .wf-row{display:grid;grid-template-columns:230px 1fr 150px;align-items:center;gap:14px;margin:7px 0}
-  .wf-name{font-size:13px}
-  .wf-name small{display:block;color:var(--muted);font-size:11px}
+  .wf-row{display:grid;grid-template-columns:230px 1fr 160px;align-items:center;gap:14px;margin:7px 0}
+  .wf-name{font-size:13px}.wf-name small{display:block;color:var(--muted);font-size:11px}
   .wf-track{height:30px;position:relative;background:#121a2b;border-radius:6px;overflow:hidden}
   .wf-fill{height:100%;position:absolute;top:0;border-radius:6px}
   .wf-stay{background:linear-gradient(90deg,#3f7bd1,#36c0bf)}
   .wf-exit{background:linear-gradient(90deg,#6b4bb0,#9b7bff)}
   .wf-num{font-size:13px;color:#cdd6ea;text-align:right;font-variant-numeric:tabular-nums}
   .wf-num b{color:#fff}
-  .match-ok{color:var(--good);font-weight:700}
-  .match-bad{color:var(--bad);font-weight:700}
+  .match-ok{color:var(--good);font-weight:700}.match-bad{color:var(--bad);font-weight:700}
   .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:10px}
   .legend span{display:inline-flex;align-items:center;gap:6px}
   .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
-  /* simple vertical bar */
   .vbars{display:flex;align-items:flex-end;gap:10px;height:150px;padding-top:10px}
   .vbar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
   .vbar .b{width:60%;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#4f9dff,#2f6fd0)}
-  .vbar .v{font-size:11px;color:#cdd6ea;margin-bottom:4px;font-variant-numeric:tabular-nums}
+  .vbar .v{font-size:11px;color:#cdd6ea;margin-bottom:4px}
   .vbar .l{font-size:11px;color:var(--muted);margin-top:6px}
   .foot{color:var(--muted);font-size:12px;margin-top:40px;border-top:1px solid var(--line);padding-top:16px}
-  code{background:#0c1017;padding:1px 6px;border-radius:5px;color:#cfe0ff;font-size:12px}
-  .note-lan{background:rgba(54,192,191,.10);border:1px solid rgba(54,192,191,.3);border-radius:9px;
-    padding:12px 14px;font-size:13px;color:#d4f0ef;margin:4px 0 18px}
-  .note-lan b{color:#fff}
 </style>
 </head>
 <body>
 <header>
   <h1>Settlement Process — Governance Dashboard</h1>
-  <p>Monthly <b>cohort</b> view: we pick the cases <b>initiated in a month</b> and follow that same set through every stage, reconciling counts at each step (e.g. SMS count must match case count). Mismatches and SLA breaches are highlighted so the control team can act. Figures are illustrative placeholders — wire each tile to your query.</p>
-  <div class="monthpick">Cohort month:
-    <select id="month">
-      <option>Sep 2026</option><option selected>Aug 2026</option><option>Jul 2026</option>
-    </select>
-    <span style="margin-left:10px">(view assumes: cases <b>initiated</b> in the selected month, tracked forward)</span>
-  </div>
+  <p>Monthly <b>cohort</b> view: cases <b>initiated in a month</b> are tracked through every stage, reconciling counts at each step (SMS vs cases, consent vs initiated, applicant vs co-applicant). Mismatches and SLA breaches are highlighted. Figures are illustrative placeholders — wire each tile to your query.</p>
 </header>
 
 <div class="wrap">
 
-  <!-- PARENT/CHILD LAN NOTE -->
-  <div class="note-lan">
-    <b>Parent LAN / Child LAN handling:</b> A settlement is always initiated on the <b>Parent LAN</b>. The consent SMS carries the <b>combined (Parent + Child) outstanding sum in a single SMS</b>; the system handles Child LAN linkage in the backend. Therefore all reconciliation below is at the <b>Parent-LAN (unique case) level</b> — one initiated case = one expected SMS set, regardless of how many Child LANs sit under it.
-  </div>
+  <!-- ============ POWER BI STYLE EXECUTIVE REPORT ============ -->
+  <div class="report">
+    <div class="rtop">
+      <div class="rtitle">Settlement Governance — Executive Report
+        <small>Cohort: cases initiated in selected month · auto-reconciled</small>
+      </div>
+      <div class="slicer">Month:
+        <select id="month"><option>Sep 2026</option><option selected>Aug 2026</option><option>Jul 2026</option></select>
+      </div>
+    </div>
 
-  <!-- WATERFALL -->
+    <div class="tiles">
+      <div class="tile"><div class="strip s-blue"></div><div class="tlabel">Initiated</div><div class="tval">1,000</div><div class="tsub">unique cases</div></div>
+      <div class="tile"><div class="strip s-teal"></div><div class="tlabel">Consent captured</div><div class="tval">860</div><div class="tsub">86% of initiated</div></div>
+      <div class="tile"><div class="strip s-green"></div><div class="tlabel">Settled</div><div class="tval">500</div><div class="tsub">50% of initiated</div></div>
+      <div class="tile"><div class="strip s-purple"></div><div class="tlabel">Withdrawn</div><div class="tval">120</div><div class="tsub">pre-approval</div></div>
+      <div class="tile"><div class="strip s-red"></div><div class="tlabel">False voids</div><div class="tval">7</div><div class="tsub">flag-sync caused</div></div>
+      <div class="tile"><div class="strip s-amber"></div><div class="tlabel">SMS mismatch</div><div class="tval">26</div><div class="tsub">cases to fix</div></div>
+    </div>
+
+    <div class="rvis">
+      <div class="vcard">
+        <h4>Stage flow (cohort)</h4>
+        <div class="lfun">
+          <div class="lfrow"><span>Initiated</span><div class="lftrack"><div class="lffill" style="width:100%"></div></div><span class="lfnum">1,000</span></div>
+          <div class="lfrow"><span>Consent</span><div class="lftrack"><div class="lffill" style="width:86%"></div></div><span class="lfnum">860</span></div>
+          <div class="lfrow"><span>Recommended</span><div class="lftrack"><div class="lffill" style="width:74%"></div></div><span class="lfnum">740</span></div>
+          <div class="lfrow"><span>Approved</span><div class="lftrack"><div class="lffill" style="width:66%"></div></div><span class="lfnum">660</span></div>
+          <div class="lfrow"><span>Settled</span><div class="lftrack"><div class="lffill" style="width:50%"></div></div><span class="lfnum">500</span></div>
+        </div>
+      </div>
+      <div class="vcard">
+        <h4>Void rate — month on month</h4>
+        <div class="lvbars">
+          <div class="lvbar"><div class="v">9.1%</div><div class="b" style="height:46%"></div><div class="l">Apr</div></div>
+          <div class="lvbar"><div class="v">8.4%</div><div class="b" style="height:42%"></div><div class="l">May</div></div>
+          <div class="lvbar"><div class="v">10.2%</div><div class="b" style="height:51%"></div><div class="l">Jun</div></div>
+          <div class="lvbar"><div class="v">9.8%</div><div class="b" style="height:49%"></div><div class="l">Jul</div></div>
+          <div class="lvbar"><div class="v">11.7%</div><div class="b hot" style="height:59%"></div><div class="l">Aug</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="why"><b>Why this view:</b> This top band mirrors a Power BI report page — a KPI tile strip plus two glanceable visuals and a month slicer — so leadership gets the headline numbers in one glance. The detailed, reconcilable tables below are the working layer the governance team drills into.</div>
+
+  <!-- ============ WATERFALL ============ -->
   <div class="section-title">Monthly cohort waterfall — stage flow &amp; count reconciliation</div>
   <div class="card">
     <h3>Cases initiated in <span id="m1">Aug 2026</span> — tracked through each stage</h3>
-    <p class="hint">Blue = cases still progressing; purple = cases that exited at this stage. The “SMS / count match” column must tie out. Any mismatch or SLA breach is flagged on the right.</p>
-
-    <div class="wf-row">
-      <div class="wf-name">Initiated (unique Parent LAN)<small>consent SMS fired</small></div>
-      <div class="wf-track"><div class="wf-fill wf-stay" style="width:100%"></div></div>
-      <div class="wf-num"><b>1,000</b> cases<br><span class="match-ok">SMS 1,000 ✓ match</span></div>
-    </div>
-
-    <div class="wf-row">
-      <div class="wf-name">Consent received<small>must match initiated cohort</small></div>
-      <div class="wf-track"><div class="wf-fill wf-stay" style="width:86%"></div></div>
-      <div class="wf-num"><b>860</b> of 1,000<br><span class="match-bad">140 pending ⚠</span></div>
-    </div>
-
-    <div class="wf-row">
-      <div class="wf-name">Withdrawn before approval<small>SMS of withdrawal must match</small></div>
-      <div class="wf-track"><div class="wf-fill wf-exit" style="width:12%"></div></div>
-      <div class="wf-num"><b>120</b> withdrawn<br><span class="match-ok">SMS 120 ✓ match</span></div>
-    </div>
-
-    <div class="wf-row">
-      <div class="wf-name">Recommended<small>higher-authority stage</small></div>
-      <div class="wf-track"><div class="wf-fill wf-stay" style="width:74%"></div></div>
-      <div class="wf-num"><b>740</b> cases<br><span class="match-ok">in control</span></div>
-    </div>
-
-    <div class="wf-row">
-      <div class="wf-name">Approved<small>flag posted to LMS; SMS to app + co-app</small></div>
-      <div class="wf-track"><div class="wf-fill wf-stay" style="width:66%"></div></div>
-      <div class="wf-num"><b>660</b> approved<br><span class="match-bad">SMS 648 ⚠ 12 short</span></div>
-    </div>
-
-    <div class="wf-row">
-      <div class="wf-name">Fully paid / matched<small>Indus match flag → LMS</small></div>
-      <div class="wf-track"><div class="wf-fill wf-stay" style="width:52%"></div></div>
-      <div class="wf-num"><b>520</b> matched<br><span class="match-ok">on track</span></div>
-    </div>
-
-    <div class="wf-row">
-      <div class="wf-name">Settled &amp; closed (SOA)<small>end state</small></div>
-      <div class="wf-track"><div class="wf-fill wf-stay" style="width:50%"></div></div>
-      <div class="wf-num"><b>500</b> settled</div>
-    </div>
-
-    <div class="legend">
-      <span><span class="dot" style="background:#36c0bf"></span>Progressing</span>
-      <span><span class="dot" style="background:#9b7bff"></span>Exited (withdrawn)</span>
-      <span class="match-ok">✓ counts match</span>
-      <span class="match-bad">⚠ mismatch / breach</span>
-    </div>
-    <div class="why"><b>Why it matters:</b> Because every stage is reconciled against the <b>same initiated cohort</b>, any “should-match” line that doesn’t tie out is an immediate red flag — e.g. 860 consents vs 1,000 initiated means 140 are stuck, and “12 short” on approval SMS means approval messages failed for 12 cases. This is the single screen the governance forum reviews first.</div>
+    <p class="hint">Blue = progressing; purple = exited (withdrawn). The right column shows whether SMS / counts tie out; mismatches &amp; SLA breaches are flagged.</p>
+    <div class="wf-row"><div class="wf-name">Initiated (unique)<small>consent SMS fired</small></div><div class="wf-track"><div class="wf-fill wf-stay" style="width:100%"></div></div><div class="wf-num"><b>1,000</b> cases<br><span class="match-ok">SMS 1,000 ✓ match</span></div></div>
+    <div class="wf-row"><div class="wf-name">Consent received<small>must match initiated cohort</small></div><div class="wf-track"><div class="wf-fill wf-stay" style="width:86%"></div></div><div class="wf-num"><b>860</b> of 1,000<br><span class="match-bad">140 pending ⚠</span></div></div>
+    <div class="wf-row"><div class="wf-name">Withdrawn before approval<small>withdrawal SMS must match</small></div><div class="wf-track"><div class="wf-fill wf-exit" style="width:12%"></div></div><div class="wf-num"><b>120</b> withdrawn<br><span class="match-ok">SMS 120 ✓ match</span></div></div>
+    <div class="wf-row"><div class="wf-name">Recommended<small>higher-authority stage</small></div><div class="wf-track"><div class="wf-fill wf-stay" style="width:74%"></div></div><div class="wf-num"><b>740</b> cases<br><span class="match-ok">in control</span></div></div>
+    <div class="wf-row"><div class="wf-name">Approved<small>flag to LMS; SMS app + co-app</small></div><div class="wf-track"><div class="wf-fill wf-stay" style="width:66%"></div></div><div class="wf-num"><b>660</b> approved<br><span class="match-bad">SMS 648 ⚠ 12 short</span></div></div>
+    <div class="wf-row"><div class="wf-name">Fully paid / matched<small>Indus match flag → LMS</small></div><div class="wf-track"><div class="wf-fill wf-stay" style="width:52%"></div></div><div class="wf-num"><b>520</b> matched<br><span class="match-ok">on track</span></div></div>
+    <div class="wf-row"><div class="wf-name">Settled &amp; closed (SOA)<small>end state</small></div><div class="wf-track"><div class="wf-fill wf-stay" style="width:50%"></div></div><div class="wf-num"><b>500</b> settled</div></div>
+    <div class="legend"><span><span class="dot" style="background:#36c0bf"></span>Progressing</span><span><span class="dot" style="background:#9b7bff"></span>Exited</span><span class="match-ok">✓ match</span><span class="match-bad">⚠ mismatch / breach</span></div>
+    <div class="why"><b>Why it matters:</b> Every stage is reconciled against the <b>same initiated cohort</b>, so any “should-match” line that doesn’t tie out is an instant red flag — 860 consents vs 1,000 initiated means 140 stuck; “12 short” means approval SMS failed for 12 cases.</div>
   </div>
 
-  <!-- SLA BREACH ON WITHDRAWAL -->
-  <div class="section-title">Stage SLA reconciliation (count &amp; SMS match + breach)</div>
+  <!-- ============ CONSENT COMPLETENESS: DIGITAL + MANUAL = INITIATED ============ -->
+  <div class="section-title">Consent completeness — digital + manual must equal initiated</div>
   <div class="card">
+    <h3>Every initiated case must carry a consent (digital OR manual)</h3>
+    <p class="hint">Rule: <code>digital consents + manual consents = initiated cases</code> for the cohort. Any gap = cases with no consent on record.</p>
     <table>
-      <thead><tr>
-        <th>Stage event (cohort = Aug 2026)</th><th class="num">Cases</th><th class="num">SMS required</th>
-        <th class="num">SMS sent</th><th>Count match</th><th>SLA</th>
-      </tr></thead>
+      <thead><tr><th>Consent type</th><th class="num">Cases</th><th class="num">% of initiated</th><th>Check</th></tr></thead>
       <tbody>
-        <tr><td>Initiation SMS</td><td class="num">1,000</td><td class="num">1,000</td><td class="num">1,000</td><td><span class="tag t-grn">Match</span></td><td><span class="tag t-grn">Within SLA</span></td></tr>
-        <tr><td>Consent received</td><td class="num">860</td><td class="num">—</td><td class="num">—</td><td><span class="tag t-amb">140 pending</span></td><td><span class="tag t-amb">Ageing</span></td></tr>
-        <tr><td>Withdrawn before approval</td><td class="num">120</td><td class="num">120</td><td class="num">120</td><td><span class="tag t-grn">Match</span></td><td><span class="tag t-red">8 breached SLA</span></td></tr>
-        <tr><td>Approval SMS (app + co-app)</td><td class="num">660</td><td class="num">660</td><td class="num">648</td><td><span class="tag t-red">12 short</span></td><td><span class="tag t-amb">Watch</span></td></tr>
+        <tr><td>Digital consent</td><td class="num">705</td><td class="num">70.5%</td><td><span class="tag t-grn">OK</span></td></tr>
+        <tr><td>Manual consent (B2B download route)</td><td class="num">141</td><td class="num">14.1%</td><td><span class="tag t-grn">OK</span></td></tr>
+        <tr><td>Both captured (should be rare — see control below)</td><td class="num">14</td><td class="num">1.4%</td><td><span class="tag t-amb">Review</span></td></tr>
+        <tr><td><b>No consent on record</b> (gap)</td><td class="num">140</td><td class="num">14.0%</td><td><span class="tag t-red">Investigate</span></td></tr>
+        <tr class="total"><td>Total initiated</td><td class="num">1,000</td><td class="num">100%</td><td></td></tr>
       </tbody>
     </table>
-    <div class="why"><b>Why it matters:</b> Withdrawal is a valid pre-approval action, but it carries an SLA (confirm &amp; SMS the customer within the agreed window). The <b>8 breached SLA</b> row means withdrawals were processed/acknowledged late — a customer-experience and audit risk. Keeping count = SMS at every event proves no customer was left un-notified.</div>
+    <div class="why"><b>Why it matters:</b> If <code>digital + manual</code> does not add up to initiated cases, some settlements are progressing <b>without a consent record</b> — a hard compliance gap. Here 705 + 141 = 846 proper single-channel consents, 14 have both, and <b>140 have none</b> (the same cases stuck at the consent stage in the waterfall). This table makes the gap and its size explicit.</div>
   </div>
 
-  <!-- SMS RECONCILIATION -->
-  <div class="section-title">Consent SMS reconciliation — applicant &amp; co-applicant</div>
+  <!-- ============ DIGITAL vs MANUAL CONFLICT CONTROL ============ -->
+  <div class="section-title">Digital vs manual consent — sequence control</div>
   <div class="card">
+    <h3>Rule: once digital consent is captured, manual consent must NOT be allowed</h3>
     <table>
-      <thead><tr><th>Scenario</th><th class="num">Cases</th><th>Expected behaviour</th><th class="num">SMS sent</th><th>Status</th></tr></thead>
+      <thead><tr><th>Pattern</th><th class="num">Cases</th><th>Assessment</th></tr></thead>
       <tbody>
-        <tr><td><b>Applicant = Co-applicant number</b> (SMS not triggered twice — same number)</td><td class="num">214</td><td>1 SMS only (de-dup)</td><td class="num">214</td><td><span class="tag t-grn">Correct</span></td></tr>
-        <tr><td><b>Co-applicant number NULL</b> (SMS not sent on co-app — no number)</td><td class="num">94</td><td>1 SMS (applicant only)</td><td class="num">94</td><td><span class="tag t-grn">Correct</span></td></tr>
-        <tr><td>Two unique numbers (applicant ≠ co-applicant)</td><td class="num">388</td><td>2 SMS</td><td class="num">371</td><td><span class="tag t-amb">17 short</span></td></tr>
-        <tr><td><b>Genuine failure — SMS not sent to EITHER primary or co-applicant</b></td><td class="num">9</td><td>should be 0</td><td class="num">0</td><td><span class="tag t-red">Investigate</span></td></tr>
-      </tbody>
-    </table>
-    <div class="why"><b>Why it matters:</b> Not every “one SMS” is a problem — rows 1 and 2 are <b>correct by design</b> (same number → de-dup; co-applicant number is NULL → nothing to send). Separating these from the <b>genuine failures</b> (row 4: a case where a valid number existed but <i>no</i> SMS went out at all) stops the team from chasing false alarms and focuses them on the 9 real breaches. Row 3 (“17 short”) is the de-dup bug: two distinct numbers but only one SMS fired.</div>
-  </div>
-
-  <!-- DIGITAL vs MANUAL CONSENT CONFLICT -->
-  <div class="section-title">Digital vs manual consent — conflict &amp; sequence control</div>
-  <div class="card">
-    <h3>Rule: if digital consent already captured, manual consent must NOT be allowed</h3>
-    <p class="hint">Flagging cases where both exist, especially where the digital timestamp precedes the manual one.</p>
-    <table>
-      <thead><tr><th>Case pattern</th><th class="num">Cases</th><th>Assessment</th></tr></thead>
-      <tbody>
-        <tr><td>Digital consent only</td><td class="num">705</td><td><span class="tag t-grn">Normal</span></td></tr>
-        <tr><td>Manual consent only (customer distrusts link)</td><td class="num">141</td><td><span class="tag t-grn">Normal</span></td></tr>
         <tr><td>Both captured — manual taken <b>before</b> digital</td><td class="num">8</td><td><span class="tag t-amb">Review</span></td></tr>
         <tr><td><b>Both captured — digital taken BEFORE manual</b> (control violation)</td><td class="num">6</td><td><span class="tag t-red">Violation</span></td></tr>
       </tbody>
     </table>
-    <div class="why"><b>Why it matters:</b> Once a customer has consented digitally, raising a manual consent afterwards is redundant and risky — it can indicate an agent re-opening a closed step, duplicate records, or a workflow gap. The last row (<b>digital-then-manual</b>) is the true control violation: the system should have blocked the manual route. Each one needs a root-cause and a system fix so manual consent is locked out once digital exists.</div>
+    <div class="why"><b>Why it matters:</b> Digital-then-manual is a true control violation — the system should have locked the manual route once digital consent existed. Each one risks duplicate records or a reopened closed step; root-cause and fix the lockout.</div>
   </div>
 
-  <!-- PAYMENT MATCHING + VOID (incl false void) -->
-  <div class="section-title">Payment matching &amp; void tracking</div>
+  <!-- ============ APPLICANT & CO-APPLICANT GOVERNANCE ============ -->
+  <div class="section-title">Applicant &amp; co-applicant — governance monitoring</div>
   <div class="grid g2">
     <div class="card">
-      <h3>Payment matching outcomes (cohort)</h3>
-      <p class="hint">Each customer payment is matched by Indus Collect against the agreed amount.</p>
+      <h3>Party coverage &amp; SMS delivery</h3>
+      <p class="hint">Monitoring applicant and co-applicant separately across the cohort.</p>
       <table>
-        <thead><tr><th>Outcome</th><th class="num">Cases</th><th class="num">Share</th></tr></thead>
+        <thead><tr><th>Measure</th><th class="num">Applicant</th><th class="num">Co-applicant</th></tr></thead>
         <tbody>
-          <tr><td>Full amount — matched &amp; settled</td><td class="num">500</td><td class="num">76%</td></tr>
-          <tr><td>Partial received — in excess, awaiting full</td><td class="num">140</td><td class="num">21%</td></tr>
-          <tr><td>Unmatched / unidentified payment</td><td class="num">20</td><td class="num">3%</td></tr>
-          <tr class="total"><td>Total approved</td><td class="num">660</td><td class="num">100%</td></tr>
+          <tr><td>Cases with this party</td><td class="num">1,000</td><td class="num">612</td></tr>
+          <tr><td>Mobile number present</td><td class="num">1,000</td><td class="num">518</td></tr>
+          <tr><td>Mobile number NULL / missing</td><td class="num">0</td><td class="num">94</td></tr>
+          <tr><td>Initiation SMS delivered</td><td class="num">991</td><td class="num">501</td></tr>
+          <tr><td>Approval SMS delivered</td><td class="num">654</td><td class="num">398</td></tr>
+          <tr><td>Delivery failures (valid number)</td><td class="num">9</td><td class="num">17</td></tr>
         </tbody>
       </table>
-      <div class="why"><b>Why it matters:</b> “In excess” money is neither settled nor adjusted — it sits in limbo against the void clock. “Unmatched” payments (received but not tied to a case) are the reconciliation blind spot and a direct cause of wrong voids.</div>
+      <div class="why"><b>Why it matters:</b> The co-applicant is the party most often missed — numbers are NULL (94) or SMS silently fails (17). Monitoring both parties side by side ensures the co-applicant’s consent/notification is genuinely solicited, not skipped. The “delivery failures with a valid number” rows are the real breaches to chase.</div>
     </div>
 
     <div class="card">
-      <h3>Void tracking — including flag-sync false voids</h3>
-      <p class="hint">Separating genuine voids from voids caused by Indus↔LMS flag delay.</p>
+      <h3>SMS reconciliation by number scenario</h3>
+      <p class="hint">Separating correct-by-design cases from genuine failures.</p>
       <table>
-        <thead><tr><th>Void reason</th><th class="num">Cases</th><th>Type</th></tr></thead>
+        <thead><tr><th>Scenario</th><th class="num">Cases</th><th>Expected</th><th>Status</th></tr></thead>
         <tbody>
-          <tr><td>No payment within 45 days</td><td class="num">42</td><td><span class="tag t-grn">Genuine</span></td></tr>
-          <tr><td>Partial only, never reached full by +45d</td><td class="num">31</td><td><span class="tag t-grn">Genuine</span></td></tr>
-          <tr><td><b>Full amount received in Indus, but voided due to flag not syncing to LMS</b></td><td class="num">7</td><td><span class="tag t-red">FALSE VOID</span></td></tr>
+          <tr><td>Applicant = Co-applicant number</td><td class="num">214</td><td>1 SMS (de-dup)</td><td><span class="tag t-grn">Correct</span></td></tr>
+          <tr><td>Co-applicant number NULL</td><td class="num">94</td><td>1 SMS (app only)</td><td><span class="tag t-grn">Correct</span></td></tr>
+          <tr><td>Two unique numbers</td><td class="num">388</td><td>2 SMS</td><td><span class="tag t-amb">17 short</span></td></tr>
+          <tr><td><b>Genuine — no SMS to EITHER party</b></td><td class="num">9</td><td>0</td><td><span class="tag t-red">Investigate</span></td></tr>
         </tbody>
       </table>
-      <div class="why"><b>Why it matters:</b> This is the exact problem you raised. A <b>false void</b> is a case where the customer actually paid the full agreed amount into Indus, but because the matched-flag did not sync to LMS in time, the case auto-voided at +45 days and the paid amount got wrongly adjusted against overdue. These should be <b>zero</b>. Tracking them separately: (1) triggers a reversal + re-settlement, and (2) quantifies the business cost of the flag-sync delay so it can be prioritised for a fix.</div>
+      <div class="why"><b>Why it matters:</b> Rows 1 &amp; 2 are correct by design (same number → de-dup; NULL co-app number → nothing to send) and must not be treated as errors. Row 3 is the de-dup bug (two numbers, one SMS). Row 4 — a valid number but no SMS to anyone — is the genuine failure that must reach zero.</div>
     </div>
   </div>
 
-  <!-- VOID RATE TREND (simple bars) -->
-  <div class="card" style="margin-top:16px">
-    <h3>Void rate trend — month on month</h3>
-    <p class="hint">Overall void rate (% of approved), with the false-void portion called out below each bar.</p>
-    <div class="vbars">
-      <div class="vbar"><div class="v">9.1%</div><div class="b" style="height:46%"></div><div class="l">Apr</div></div>
-      <div class="vbar"><div class="v">8.4%</div><div class="b" style="height:42%"></div><div class="l">May</div></div>
-      <div class="vbar"><div class="v">10.2%</div><div class="b" style="height:51%"></div><div class="l">Jun</div></div>
-      <div class="vbar"><div class="v">9.8%</div><div class="b" style="height:49%"></div><div class="l">Jul</div></div>
-      <div class="vbar"><div class="v">11.7%</div><div class="b" style="height:59%"></div><div class="l">Aug</div></div>
-    </div>
-    <div class="why"><b>Why it matters:</b> A rising void rate (9.1% → 11.7%) is money leaving the funnel. Read it alongside the false-void count: if false voids are climbing, the fix is <b>technical (flag sync)</b>, not collections. Simple month-on-month bars make the trend obvious without needing statistical charts.</div>
+  <!-- ============ VOID TRACKING incl FALSE VOID ============ -->
+  <div class="section-title">Void tracking — including flag-sync false voids</div>
+  <div class="card">
+    <table>
+      <thead><tr><th>Void reason</th><th class="num">Cases</th><th>Type</th></tr></thead>
+      <tbody>
+        <tr><td>No payment within 45 days</td><td class="num">42</td><td><span class="tag t-grn">Genuine</span></td></tr>
+        <tr><td>Partial only, never reached full by +45d</td><td class="num">31</td><td><span class="tag t-grn">Genuine</span></td></tr>
+        <tr><td><b>Full amount received in Indus, but voided because match flag did not sync to LMS</b></td><td class="num">7</td><td><span class="tag t-red">FALSE VOID</span></td></tr>
+      </tbody>
+    </table>
+    <div class="why"><b>Why it matters:</b> A <b>false void</b> is a case where the customer actually paid the full agreed amount into Indus, but the matched-flag didn’t sync to LMS in time, so the case auto-voided at +45 days and the paid amount got wrongly adjusted against overdue. These must be <b>zero</b>. Tracking them separately triggers reversal + re-settlement and quantifies the business cost of the flag-sync delay.</div>
   </div>
 
   <div class="foot">
-    Illustrative placeholder data — replace with live feeds (reconcile at Parent-LAN / unique-case level). Metric selection informed by NBFC settlement practice in India (RBI board-approved OTS policy; known payment-reconciliation / matching challenges). Sources:
+    Illustrative placeholder data — replace with live feeds. Metric selection informed by NBFC settlement practice in India (RBI board-approved OTS policy; known payment-reconciliation / matching challenges). Sources:
     <a style="color:var(--accent)" href="https://freed.care/blog/rbi-guidelines-on-loan-settlement-what-banks-are-required-to-offer">RBI guidelines on loan settlement (freed.care)</a>,
     <a style="color:var(--accent)" href="https://payu.in/blog/more-than-just-payments-how-payu-used-upi-to-solve-reconciliation-for-nbfcs/">PayU on NBFC reconciliation</a>.
     Content was rephrased for compliance with licensing restrictions.
@@ -261,7 +257,6 @@
 </div>
 
 <script>
-  // keep the cohort-month label in sync with the picker (illustrative; wire to data later)
   var sel=document.getElementById('month');
   sel.addEventListener('change',function(){document.getElementById('m1').textContent=sel.value;});
 </script>
