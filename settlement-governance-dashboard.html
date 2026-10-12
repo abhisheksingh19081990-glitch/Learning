@@ -72,6 +72,17 @@
   .commdrawer .cflag{margin-top:8px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;display:inline-block}
   .cf-ok{background:#e3f5ec;color:#1aa06d}.cf-bad{background:#fde6e8;color:#e14b57}
   .tiphint{font-size:11px;color:#8a93a3;margin-top:6px}
+  /* reconciling waterfall tables (party SMS) */
+  .wfh-title{font-size:12px;font-weight:800;letter-spacing:.6px;color:var(--accent);margin:0 0 6px}
+  table.wfh{width:100%;border-collapse:collapse;font-size:13px}
+  table.wfh td{padding:7px 10px;border-bottom:1px solid var(--line)}
+  table.wfh td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+  .wfh-top td{background:rgba(79,157,255,.10);font-weight:700;border-top:2px solid var(--accent)}
+  .wfh-drop td{color:var(--bad);padding-left:22px;font-size:12.5px}
+  .wfh-drop td.num{color:var(--bad)}
+  .wfh-sub td{color:var(--muted);font-style:italic}
+  .wfh-end td{background:rgba(54,192,138,.12);font-weight:800;color:#bfe9d4;border-top:1px solid var(--good)}
+  .wfh-end td.num{color:var(--good)}
   /* light funnel bars for report */
   .lfun{display:flex;flex-direction:column;gap:7px}
   .lfrow{display:grid;grid-template-columns:120px 1fr 70px;align-items:center;gap:9px;font-size:12px;color:#39424f}
@@ -245,20 +256,35 @@
   <div class="section-title">Applicant &amp; co-applicant — governance monitoring</div>
   <div class="grid g2">
     <div class="card">
-      <h3>Party coverage &amp; SMS delivery</h3>
-      <p class="hint"><b>How to read:</b> go top-to-bottom — it narrows from “party exists” → “has a number” → “actually got the SMS”, for applicant vs co-applicant side by side. The gaps show where the co-applicant drops off.</p>
-      <table>
-        <thead><tr><th>Step (narrows down)</th><th class="num">Applicant</th><th class="num">Co-applicant</th><th>Read as</th></tr></thead>
+      <h3>Who actually received the initiation SMS — waterfall</h3>
+      <p class="hint"><b>How to read:</b> start at the top (all initiated cases). Each red line is a drop-off with its reason (−N). Subtract the drops and you land on how many actually got the SMS. The numbers always add back to the top.</p>
+
+      <!-- APPLICANT waterfall -->
+      <div class="wfh-title">APPLICANT</div>
+      <table class="wfh">
         <tbody>
-          <tr><td>1. Party exists on the case</td><td class="num">1,000</td><td class="num">612</td><td style="color:var(--muted);font-size:12px">388 cases have no co-applicant</td></tr>
-          <tr><td>2. Mobile number present</td><td class="num">1,000</td><td class="num">518</td><td style="color:var(--muted);font-size:12px">of those who exist</td></tr>
-          <tr><td>3. Mobile number NULL / missing</td><td class="num">0</td><td class="num">94</td><td><span class="tag t-amb">94 co-app no number</span></td></tr>
-          <tr><td>4. Initiation SMS delivered</td><td class="num">991</td><td class="num">501</td><td style="color:var(--muted);font-size:12px">of those with a number</td></tr>
-          <tr><td>5. Approval SMS delivered</td><td class="num">654</td><td class="num">398</td><td style="color:var(--muted);font-size:12px">of those approved</td></tr>
-          <tr><td>6. Delivery failed (valid number)</td><td class="num">9</td><td class="num">17</td><td><span class="tag t-red">real breaches</span></td></tr>
+          <tr class="wfh-top"><td>Cases initiated (every case has an applicant)</td><td class="num">1,000</td></tr>
+          <tr class="wfh-drop"><td>− Applicant mobile number missing</td><td class="num">0</td></tr>
+          <tr class="wfh-sub"><td>= Applicants with a number we can SMS</td><td class="num">1,000</td></tr>
+          <tr class="wfh-drop"><td>− SMS failed to deliver (valid number)</td><td class="num">9</td></tr>
+          <tr class="wfh-end"><td>= Applicants who received the SMS</td><td class="num">991</td></tr>
         </tbody>
       </table>
-      <div class="why"><b>Why it matters:</b> The co-applicant drops off most — 94 have no number, and 17 had a number but the SMS still failed (row 6). Those 17 are the real misses to fix; the rest is explained by “no co-applicant” or “no number”.</div>
+
+      <!-- CO-APPLICANT waterfall -->
+      <div class="wfh-title" style="margin-top:16px">CO-APPLICANT</div>
+      <table class="wfh">
+        <tbody>
+          <tr class="wfh-top"><td>Cases initiated</td><td class="num">1,000</td></tr>
+          <tr class="wfh-drop"><td>− No co-applicant on the case</td><td class="num">388</td></tr>
+          <tr class="wfh-sub"><td>= Co-applicants present</td><td class="num">612</td></tr>
+          <tr class="wfh-drop"><td>− Co-applicant mobile number missing (NULL)</td><td class="num">94</td></tr>
+          <tr class="wfh-sub"><td>= Co-applicants with a number we can SMS</td><td class="num">518</td></tr>
+          <tr class="wfh-drop"><td>− SMS failed to deliver (valid number)</td><td class="num">17</td></tr>
+          <tr class="wfh-end"><td>= Co-applicants who received the SMS</td><td class="num">501</td></tr>
+        </tbody>
+      </table>
+      <div class="why"><b>Why it matters:</b> Reading top-down, the applicant barely drops (only 9 failed). The co-applicant loses a lot — 388 cases have none, 94 have no number, and 17 failed despite a valid number. Only that last 17 is a true miss to fix; the rest is explained. Because every drop is a labelled line, the numbers always reconcile to the top.</div>
     </div>
 
     <div class="card">
