@@ -85,6 +85,20 @@
   .wfh-end td.num{color:var(--good)}
   .tg2{border:none;background:transparent;font-size:11px;font-weight:600;color:var(--muted);padding:4px 10px;border-radius:5px;cursor:pointer}
   .tg2.active{background:var(--accent);color:#fff}
+  /* see-logic button + logic section */
+  .seelogic{float:right;font-size:11px;font-weight:700;color:var(--accent);background:rgba(79,157,255,.12);
+    border:1px solid rgba(79,157,255,.35);border-radius:7px;padding:4px 10px;cursor:pointer;text-decoration:none;display:inline-block}
+  .seelogic:hover{background:rgba(79,157,255,.22)}
+  .cardhead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .logicblock{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow);margin-bottom:16px}
+  .logicblock h3{margin:0 0 8px;font-size:15px;color:var(--accent)}
+  .logicblock .backbtn{float:right;font-size:11px;font-weight:700;color:#cdd6ea;background:#1d2740;border:1px solid var(--line);
+    border-radius:7px;padding:4px 10px;cursor:pointer;text-decoration:none}
+  .logicblock .backbtn:hover{background:#263252}
+  .logicblock code{background:#0c1017;padding:2px 7px;border-radius:5px;color:#cfe0ff;font-size:12.5px;display:inline-block;margin:3px 0}
+  .logicblock ul{margin:8px 0;padding-left:20px;font-size:13px;color:#cdd6ea}
+  .logicblock li{margin:5px 0}
+  :target{scroll-margin-top:14px}
   /* light funnel bars for report */
   .lfun{display:flex;flex-direction:column;gap:7px}
   .lfrow{display:grid;grid-template-columns:120px 1fr 70px;align-items:center;gap:9px;font-size:12px;color:#39424f}
@@ -196,8 +210,10 @@
 
   <!-- ============ WATERFALL ============ -->
   <div class="section-title">Monthly cohort waterfall — stage flow &amp; count reconciliation</div>
-  <div class="card">
-    <h3>Cases initiated in <span id="m1">Aug 2026</span> — tracked through each stage</h3>
+  <div class="card" id="chart-waterfall">
+    <h3>Cases initiated in <span id="m1">Aug 2026</span> — tracked through each stage
+      <a class="seelogic" href="#logic-waterfall" onclick="goLogic('chart-waterfall')">See logic ▸</a>
+    </h3>
     <p class="hint">Counts are at <b>case level</b> (one row = one unique settlement case). Blue = progressing; purple = exited (withdrawn). The right column shows whether SMS / counts tie out.</p>
     <div id="waterfall"></div>
     <div class="legend"><span><span class="dot" style="background:#36c0bf"></span>Progressing</span><span><span class="dot" style="background:#9b7bff"></span>Exited</span><span class="match-ok">✓ match</span><span class="match-bad">⚠ mismatch / breach</span></div>
@@ -206,8 +222,10 @@
 
   <!-- ============ CONSENT COMPLETENESS: DIGITAL + MANUAL = INITIATED ============ -->
   <div class="section-title">Consent completeness — digital + manual must equal initiated</div>
-  <div class="card">
-    <h3>Every initiated case must carry a consent (digital OR manual)</h3>
+  <div class="card" id="chart-consent">
+    <h3>Every initiated case must carry a consent (digital OR manual)
+      <a class="seelogic" href="#logic-consent" onclick="goLogic('chart-consent')">See logic ▸</a>
+    </h3>
     <p class="hint">Breakup shown below (click the bar to collapse/expand). Rule: <code>digital + manual = initiated</code>; any gap = cases with no consent.</p>
 
     <!-- interactive stacked bar: hover/click shows breakup -->
@@ -240,26 +258,14 @@
     <div class="why"><b>Why it matters:</b> If digital + manual don’t add up to initiated, some cases have moved ahead with no consent on record. Here 140 have none — a compliance gap to close.</div>
   </div>
 
-  <!-- ============ DIGITAL vs MANUAL CONFLICT CONTROL ============ -->
-  <div class="section-title">Digital vs manual consent — sequence control</div>
-  <div class="card">
-    <h3>Rule: once digital consent is captured, manual consent must NOT be allowed</h3>
-    <table>
-      <thead><tr><th>Pattern</th><th class="num">Cases</th><th>Assessment</th></tr></thead>
-      <tbody>
-        <tr><td>Both captured — manual taken <b>before</b> digital</td><td class="num">8</td><td><span class="tag t-amb">Review</span></td></tr>
-        <tr><td><b>Both captured — digital taken BEFORE manual</b> (control violation)</td><td class="num">6</td><td><span class="tag t-red">Violation</span></td></tr>
-      </tbody>
-    </table>
-    <div class="why"><b>Why it matters:</b> If digital consent is already there, manual should be blocked. Digital-then-manual means the block failed — fix it.</div>
-  </div>
-
   <!-- ============ APPLICANT & CO-APPLICANT GOVERNANCE ============ -->
   <div class="section-title">Applicant &amp; co-applicant — governance monitoring</div>
   <div class="grid g2">
-    <div class="card">
+    <div class="card" id="chart-party">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
-        <h3 style="margin:0">Who was sent the SMS — waterfall</h3>
+        <h3 style="margin:0">Who was sent the SMS — waterfall
+          <a class="seelogic" href="#logic-party" onclick="goLogic('chart-party')">See logic ▸</a>
+        </h3>
         <div class="toggle" style="background:#1d2740">
           <button class="tg2 active" data-pstage="init" onclick="setParty('init')">Initiation</button>
           <button class="tg2" data-pstage="appr" onclick="setParty('appr')">Approval</button>
@@ -273,7 +279,7 @@
       <div class="wfh-title" style="margin-top:16px">CO-APPLICANT</div>
       <table class="wfh" id="wfCoapp"></table>
 
-      <div class="why"><b>Why it matters:</b> The applicant barely drops. The co-applicant drops for three different reasons, and they are <b>not the same</b>: “same number as applicant” is <b>correct</b> (one SMS per unique number), “no number” is a coverage gap, and “SMS not sent despite a valid unique number” is the real miss to fix. Splitting them stops the team chasing cases that are actually fine.</div>
+      <div class="why"><b>Why it matters:</b> This is for the <b>informational</b> SMS (initiated / approved / closed / void), which goes to both parties. <b>Consent SMS is a separate thing — it goes to the primary applicant only, never the co-applicant.</b> The co-applicant drops for three distinct reasons: “same number as applicant” is correct de-dup, “no number” is a coverage gap, and “not sent despite a valid unique number” is the real miss.</div>
     </div>
 
     <div class="card">
@@ -294,7 +300,10 @@
 
   <!-- ============ VOID TRACKING incl FALSE VOID ============ -->
   <div class="section-title">Void tracking — including flag-sync false voids</div>
-  <div class="card">
+  <div class="card" id="chart-void">
+    <h3 style="margin:0 0 10px">Void reasons — genuine vs false void
+      <a class="seelogic" href="#logic-void" onclick="goLogic('chart-void')">See logic ▸</a>
+    </h3>
     <table>
       <thead><tr><th>Void reason</th><th class="num">Cases</th><th>Type</th></tr></thead>
       <tbody>
@@ -308,8 +317,10 @@
 
   <!-- ============ SYSTEM GOVERNANCE: FLAG-SYNC SLA ============ -->
   <div class="section-title">System governance — flag-sync SLA (Indus → LMS)</div>
-  <div class="card">
-    <h3>Post-approval flag must reach LMS within 5–7 minutes</h3>
+  <div class="card" id="chart-flagsync">
+    <h3>Post-approval flag must reach LMS within 5–7 minutes
+      <a class="seelogic" href="#logic-flagsync" onclick="goLogic('chart-flagsync')">See logic ▸</a>
+    </h3>
     <p class="hint">Measured from approval in Indus to settlement-flag received in LMS. Target ≤ 5 min · Breach &gt; 7 min.</p>
     <div class="grid g4" style="margin-bottom:14px">
       <div class="kpi"><div class="label">Avg sync time</div><div class="value" style="color:var(--good)">4.2 <span style="font-size:13px;color:var(--muted)">min</span></div><div class="sub">target ≤ 5 min</div></div>
@@ -331,8 +342,10 @@
 
   <!-- ============ CLOSURE TOLERANCE: EXCESS / SHORT ============ -->
   <div class="section-title">Closure tolerance — collected vs agreed amount</div>
-  <div class="card">
-    <h3>Small differences (±₹300) are allowed to close — not void</h3>
+  <div class="card" id="chart-tolerance">
+    <h3>Small differences (±₹300) are allowed to close — not void
+      <a class="seelogic" href="#logic-tolerance" onclick="goLogic('chart-tolerance')">See logic ▸</a>
+    </h3>
     <p class="hint">System may close a case if collected is within the tolerance band of the agreed amount. A case must NOT void just because of a ₹100–300 gap.</p>
     <table>
       <thead><tr><th>Closure pattern</th><th class="num">Cases</th><th class="num">₹ difference</th><th>Status</th></tr></thead>
@@ -345,6 +358,72 @@
       </tbody>
     </table>
     <div class="why"><b>Why it matters:</b> A tiny ₹100–300 gap should close the case, not void it. Row 4 is the real problem — cases that wrongly voided over a trivial amount. Those should have auto-closed; each one needs a fix. Row 5 (gap &gt; ₹300) is a genuine exception for manual review.</div>
+  </div>
+
+  <!-- ============ LOGIC / CALCULATION REFERENCE ============ -->
+  <div class="section-title" id="logic-section">Logic &amp; calculation reference</div>
+
+  <div class="logicblock" id="logic-waterfall">
+    <h3>Monthly cohort waterfall <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <ul>
+      <li><b>Cohort</b> = all cases where <code>settlement_initiated_date</code> falls in the selected month.</li>
+      <li>Each stage counts that <b>same</b> cohort as it reaches the stage (a subset — the funnel narrows, it does not add up).</li>
+      <li><code>Consent gap = Settlement initiated − Consent SMS fired</code></li>
+      <li><code>Approval SMS short = Approved cases − Approval SMS actually sent</code></li>
+      <li>Counts are at <b>case level</b> (one row = one unique settlement case).</li>
+    </ul>
+  </div>
+
+  <div class="logicblock" id="logic-party">
+    <h3>Who was sent the SMS — party waterfall <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <ul>
+      <li>Applies to <b>informational</b> SMS (initiated / approved / closed / void) — sent to <b>both</b> parties.</li>
+      <li><b>Consent SMS is excluded here</b> — it goes to the primary applicant only (see Consent logic).</li>
+      <li>Applicant: <code>Sent = Top − (number missing) − (not sent)</code></li>
+      <li>Co-applicant: <code>Present = Top − (no co-applicant)</code></li>
+      <li>Co-applicant: <code>Unique-to-SMS = Present − (number SAME as applicant) − (number missing)</code></li>
+      <li>Co-applicant: <code>Sent = Unique-to-SMS − (not sent)</code></li>
+      <li><b>Rule:</b> only <b>unique</b> numbers are messaged — a co-applicant whose number equals the applicant’s is correctly not sent a duplicate.</li>
+    </ul>
+  </div>
+
+  <div class="logicblock" id="logic-consent">
+    <h3>Consent completeness &amp; consent SMS <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <ul>
+      <li><b>Consent is taken from the primary applicant only.</b> A consent-request SMS is <b>never</b> sent to the co-applicant.</li>
+      <li>Co-applicant receives <b>informational</b> SMS only on: initiated, cancelled (withdrawn), closed, void.</li>
+      <li><code>Consent SMS gap = Initiated applicants − Consent SMS sent</code> → applicants initiated but with no consent SMS (investigate).</li>
+      <li><code>Consent completeness: Digital + Manual + No-consent = Initiated</code> (must balance).</li>
+      <li>“No consent on record” = initiated cases with neither a digital nor a manual consent.</li>
+    </ul>
+  </div>
+
+  <div class="logicblock" id="logic-void">
+    <h3>Void tracking <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <ul>
+      <li><b>Genuine void</b> = no payment, or partial only, by the agreed-date + 45 days.</li>
+      <li><b>False void</b> = full agreed amount received in Indus, but the match flag did not sync to LMS in time, so the case auto-voided. <b>Target = 0.</b></li>
+      <li><code>Void rate = Voided cases ÷ Approved cases</code> (per month).</li>
+    </ul>
+  </div>
+
+  <div class="logicblock" id="logic-flagsync">
+    <h3>Flag-sync SLA (Indus → LMS) <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <ul>
+      <li><code>Sync time = LMS flag-received timestamp − Indus approval timestamp</code></li>
+      <li>Target <b>≤ 5 min</b>; amber <b>5–7 min</b>; breach <b>&gt; 7 min</b>.</li>
+      <li>Breaches are the leading cause of false voids — a slow flag means the settlement flag is not raised on time.</li>
+    </ul>
+  </div>
+
+  <div class="logicblock" id="logic-tolerance">
+    <h3>Closure tolerance (collected vs agreed) <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <ul>
+      <li><code>Difference = Collected amount − Agreed amount</code></li>
+      <li>If <code>|Difference| ≤ ₹300</code> → the case is <b>allowed to close</b> (must not void over a trivial gap).</li>
+      <li><b>Control failure</b> = a case that voided even though <code>|Difference| ≤ ₹300</code> → should have auto-closed.</li>
+      <li>If <code>|Difference| &gt; ₹300</code> → not auto-closed; routed for manual review.</li>
+    </ul>
   </div>
 
 </div>
@@ -362,10 +441,10 @@
         appr:{top:660,  app:{noNum:0, notSent:12}, co:{noCo:262, coSame:48, noNum:52, notSent:9}}
       },
       comm:{
-        'Settlement initiated':{sms:true,app:1000,coapp:612,total:1612,unique:1398,sent:1372,notsent:26},
-        'Consent SMS initiated':{sms:true,app:860,coapp:510,total:1370,unique:1198,sent:1180,notsent:18},
-        'Settlement approved': {sms:true,app:660,coapp:398,total:1058,unique:1046,sent:1034,notsent:12},
-        'Settled & closed':    {sms:true,app:500,coapp:300,total:800,unique:792,sent:788,notsent:4}
+        'Settlement initiated':{sms:true,who:'both',app:1000,coapp:612,total:1612,unique:1398,sent:1372,notsent:26},
+        'Consent SMS initiated':{sms:true,who:'applicant',app:1000,coapp:0,unique:1000,sent:860,notsent:140,gapVsInit:140},
+        'Settlement approved': {sms:true,who:'both',app:660,coapp:398,total:1058,unique:1046,sent:1034,notsent:12},
+        'Settled & closed':    {sms:true,who:'both',app:500,coapp:300,total:800,unique:792,sent:788,notsent:4}
       }
     },
     'Sep 2026':{
@@ -377,10 +456,10 @@
         appr:{top:815,  app:{noNum:0, notSent:3}, co:{noCo:317, coSame:60, noNum:40, notSent:4}}
       },
       comm:{
-        'Settlement initiated':{sms:true,app:1180,coapp:720,total:1900,unique:1662,sent:1651,notsent:11},
-        'Consent SMS initiated':{sms:true,app:1040,coapp:632,total:1672,unique:1480,sent:1472,notsent:8},
-        'Settlement approved': {sms:true,app:815,coapp:498,total:1313,unique:1301,sent:1298,notsent:3},
-        'Settled & closed':    {sms:true,app:640,coapp:384,total:1024,unique:1018,sent:1016,notsent:2}
+        'Settlement initiated':{sms:true,who:'both',app:1180,coapp:720,total:1900,unique:1662,sent:1651,notsent:11},
+        'Consent SMS initiated':{sms:true,who:'applicant',app:1180,coapp:0,unique:1180,sent:1040,notsent:140,gapVsInit:140},
+        'Settlement approved': {sms:true,who:'both',app:815,coapp:498,total:1313,unique:1301,sent:1298,notsent:3},
+        'Settled & closed':    {sms:true,who:'both',app:640,coapp:384,total:1024,unique:1018,sent:1016,notsent:2}
       }
     },
     'Jul 2026':{
@@ -392,10 +471,10 @@
         appr:{top:548, app:{noNum:0, notSent:27}, co:{noCo:210, coSame:40, noNum:48, notSent:19}}
       },
       comm:{
-        'Settlement initiated':{sms:true,app:910,coapp:560,total:1470,unique:1282,sent:1240,notsent:42},
-        'Consent SMS initiated':{sms:true,app:742,coapp:430,total:1172,unique:1010,sent:978,notsent:32},
-        'Settlement approved': {sms:true,app:548,coapp:331,total:879,unique:866,sent:839,notsent:27},
-        'Settled & closed':    {sms:true,app:402,coapp:240,total:642,unique:636,sent:628,notsent:8}
+        'Settlement initiated':{sms:true,who:'both',app:910,coapp:560,total:1470,unique:1282,sent:1240,notsent:42},
+        'Consent SMS initiated':{sms:true,who:'applicant',app:910,coapp:0,unique:910,sent:742,notsent:168,gapVsInit:168},
+        'Settlement approved': {sms:true,who:'both',app:548,coapp:331,total:879,unique:866,sent:839,notsent:27},
+        'Settled & closed':    {sms:true,who:'both',app:402,coapp:240,total:642,unique:636,sent:628,notsent:8}
       }
     }
   };
@@ -493,13 +572,20 @@
       drawer.classList.remove('open'); drawer.dataset.stage=''; return;
     }
     rowEl.classList.add('sel'); drawer.dataset.stage=stage;
+    var rate=Math.round(c.sent/c.unique*1000)/10;
     var html='<h5>'+stage+' — SMS communication</h5>';
-    if(!c.sms){
-      html+='<div class="tiphint">'+c.note+'</div>';
-    } else {
-      var rate=Math.round(c.sent/c.unique*1000)/10;
+    html+='<div class="crow"><span>Who is informed</span><b>'+(c.who==='applicant'?'Applicant only':'Applicant + Co-applicant')+'</b></div>';
+    if(c.who==='applicant'){
+      // consent SMS: primary applicant only (never co-applicant)
       html+=''+
-        '<div class="crow"><span>SMS triggered</span><b>Yes</b></div>'+
+        '<div class="crow"><span>Applicant numbers (consent)</span><b>'+fmt(c.app)+'</b></div>'+
+        '<div class="crow"><span>Co-applicant</span><b>Not applicable</b></div>'+
+        '<div class="crow"><span>Consent SMS sent</span><b>'+fmt(c.sent)+'</b></div>'+
+        '<div class="crow"><span>Not sent</span><b style="color:#e14b57">'+fmt(c.notsent)+'</b></div>'+
+        '<div class="crow"><span>Gap vs initiated</span><b style="color:#e14b57">'+fmt(c.gapVsInit)+'</b></div>'+
+        '<span class="cflag cf-bad">'+fmt(c.gapVsInit)+' initiated applicants did not get a consent SMS — investigate</span>';
+    } else {
+      html+=''+
         '<div class="crow"><span>Applicant numbers</span><b>'+fmt(c.app)+'</b></div>'+
         '<div class="crow"><span>Co-applicant numbers</span><b>'+fmt(c.coapp)+'</b></div>'+
         '<div class="crow"><span>Total numbers targeted</span><b>'+fmt(c.total)+'</b></div>'+
@@ -524,6 +610,14 @@
     }).join('');
     document.getElementById('voidHdr').textContent='VOID RATE — '+(mode==='day'?'DAY WISE ('+m+')':'MONTH WISE');
     document.querySelectorAll('.tg').forEach(function(b){b.classList.toggle('active',b.dataset.mode===mode);});
+  }
+
+  // ===== See-logic / Back navigation =====
+  var returnTo='';
+  function goLogic(chartId){ returnTo=chartId; } // href handles the jump to #logic-*
+  function goBack(){
+    if(returnTo){ location.hash=''; document.getElementById(returnTo).scrollIntoView({behavior:'smooth',block:'start'}); }
+    else { window.scrollTo({top:0,behavior:'smooth'}); }
   }
 
   renderMonth(); // initial paint
