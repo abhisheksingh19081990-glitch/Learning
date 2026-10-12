@@ -62,12 +62,11 @@
   .lfrow.clk{cursor:pointer;border-radius:6px;padding:2px 4px;transition:background .15s}
   .lfrow.clk:hover{background:#eef3fb}
   .lfrow.clk.sel{background:#e4edfb;box-shadow:inset 0 0 0 1px #cfe0ff}
-  .commwrap{display:flex;gap:12px;overflow:hidden;align-items:flex-start}
-  .commdrawer{flex:0 0 0;width:0;opacity:0;overflow:hidden;
-    transition:flex-basis .3s ease, width .3s ease, opacity .25s ease;
-    background:#fff;border:1px solid #e3e8f0;border-radius:11px;align-self:start}
-  .commdrawer.open{flex:0 0 300px;width:300px;opacity:1;padding:13px 14px;margin-left:0}
-  @media(max-width:800px){.commdrawer.open{flex-basis:100%;width:100%}}
+  .commwrap{display:flex;gap:12px;align-items:flex-start}
+  .commdrawer{display:none;flex:0 0 300px;width:300px;align-self:start;
+    background:#fff;border:1px solid #e3e8f0;border-radius:11px;padding:13px 14px}
+  .commdrawer.open{display:block}
+  @media(max-width:800px){.commdrawer{flex-basis:100%;width:100%}}
   .commdrawer h5{margin:0 0 8px;font-size:13px;color:#17202c;font-weight:800}
   .commdrawer .crow{display:flex;justify-content:space-between;font-size:12px;color:#39424f;padding:5px 0;border-bottom:1px solid #eef1f7}
   .commdrawer .crow b{color:#17202c}
@@ -588,7 +587,8 @@
       return '<div class="lfrow clk" data-stage="'+s[0]+'" onclick="showComm(this,\''+s[0].replace(/'/g,"")+'\')"><span>'+s[0]+'</span><div class="lftrack"><div class="lffill" style="width:'+w+'%"></div></div><span class="lfnum">'+fmt(s[1])+'</span></div>';
     }).join('');
     // close any open drawer when month changes
-    document.getElementById('commDrawer').classList.remove('open');
+    var _dw=document.getElementById('commDrawer'); _dw.classList.remove('open'); _dw.innerHTML=''; _dw.dataset.stage='';
+    document.querySelectorAll('.lfrow.clk').forEach(function(r){r.classList.remove('sel');});
     // waterfall (detailed, case level)
     var consMatch=d.consSmsOk?'<span class="match-ok">SMS '+fmt(d.cons)+' ✓ match</span>':'<span class="match-bad">'+(d.init-d.cons)+' pending ⚠</span>';
     var apprMatch=d.apprShort>0?'<span class="match-bad">SMS '+fmt(d.apprSms)+' ⚠ '+d.apprShort+' short</span>':'<span class="match-ok">SMS '+fmt(d.appr)+' ✓ match</span>';
@@ -674,7 +674,7 @@
     document.querySelectorAll('.lfrow.clk').forEach(function(r){r.classList.remove('sel');});
     // clicking the already-selected row closes the drawer
     if(drawer.classList.contains('open') && drawer.dataset.stage===stage){
-      drawer.classList.remove('open'); drawer.dataset.stage=''; return;
+      drawer.classList.remove('open'); drawer.innerHTML=''; drawer.dataset.stage=''; return;
     }
     rowEl.classList.add('sel'); drawer.dataset.stage=stage;
     var rate=Math.round(c.sent/c.unique*1000)/10;
