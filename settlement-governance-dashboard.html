@@ -1071,6 +1071,16 @@
     window.print(); // choose "Save as PDF" in the print dialog
   }
 
+  // close the stage-flow drawer when clicking anywhere outside it or the stage rows
+  document.addEventListener('click', function(ev){
+    var drawer=document.getElementById('commDrawer');
+    if(!drawer || !drawer.classList.contains('open')) return;
+    // ignore clicks on a stage row (showComm handles those) or inside the drawer itself
+    if(ev.target.closest('#commDrawer') || ev.target.closest('.lfrow.clk')) return;
+    drawer.classList.remove('open'); drawer.innerHTML=''; drawer.dataset.stage='';
+    document.querySelectorAll('.lfrow.clk').forEach(function(r){r.classList.remove('sel');});
+  });
+
   renderMonth(); // initial paint
 </script>
 </body>
