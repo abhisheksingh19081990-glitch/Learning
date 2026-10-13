@@ -253,6 +253,17 @@
   </div>
   <div class="why"><b>Why this view:</b> One-glance summary for leadership (like a Power BI page). Detailed tables below are for the team to dig into.</div>
 
+  <!-- ============ STAGE COMMUNICATION — ALL STAGES SIDE BY SIDE ============ -->
+  <div class="section-title">Stage communication — all stages side by side</div>
+  <div class="card" id="chart-stagecols">
+    <h3>SMS breakup per stage, in columns (no clicking needed) <span id="scScope" style="font-weight:500;color:var(--muted);font-size:12px"></span>
+      <a class="seelogic" href="#logic-stagecols" onclick="goLogic('chart-stagecols')">See logic ▸</a>
+    </h3>
+    <p class="hint">Same breakup as the click-drawer, but every stage shown at once as a column — easy to compare across stages. Follows the Stage Flow Month/Day toggle above.</p>
+    <div style="overflow-x:auto"><table id="stageCols"></table></div>
+    <div class="why"><b>Why it matters:</b> Seeing all stages as columns lets you compare where SMS delivery drops off across the journey at a glance — e.g. is “not sent” worse at approval than initiation? Consent is applicant-only, so its co-applicant cells read N/A.</div>
+  </div>
+
   <!-- ============ WATERFALL ============ -->
   <div class="section-title">Monthly cohort waterfall — stage flow &amp; count reconciliation</div>
   <div class="card" id="chart-waterfall">
@@ -547,6 +558,16 @@
     </ul>
   </div>
 
+  <div class="logicblock" id="logic-stagecols">
+    <h3>Stage communication side-by-side <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <ul>
+      <li>Same SMS breakup as the click-drawer, laid out with <b>one column per stage</b> and parameters as rows.</li>
+      <li>Follows the Stage Flow Month/Day toggle: in day-wise mode every number is scaled to the selected day.</li>
+      <li><code>Not sent = number missing/NULL + present-but-not-sent</code>, per stage.</li>
+      <li>Consent is <b>applicant only</b> → its co-applicant cell shows N/A.</li>
+    </ul>
+  </div>
+
   <div class="logicblock" id="logic-consentparams">
     <h3>Consent parameters breakup <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
     <ul>
@@ -834,6 +855,13 @@
 
   // ===== Stage Flow render — same format for month-wise and day-wise =====
   var curSFMode='month';
+  // returns the scaling factor to apply to monthly numbers for the current mode/day
+  function dayFactor(){
+    if(curSFMode!=='day') return 1;
+    var m=document.getElementById('month').value, d=DATA[m];
+    var dayN=parseInt(document.getElementById('sfDay').value||1,10);
+    return (d.stageDay[(dayN-1)%d.stageDay.length])/d.init;
+  }
   function setStageMode(mode){
     curSFMode=mode;
     document.getElementById('sfDay').style.display = (mode==='day') ? 'inline-block' : 'none';
@@ -844,9 +872,7 @@
     var m=document.getElementById('month').value, d=DATA[m];
     var scope, label;
     if(curSFMode==='day'){
-      // scale the month's stage counts down to one representative day (same ratios, same format)
-      var dayN=parseInt(document.getElementById('sfDay').value||1,10);
-      var f=(d.stageDay[(dayN-1)%d.stageDay.length])/d.init; // that day's share of the month
+      var dayN=parseInt(document.getElementById('sfDay').value||1,10), f=dayFactor();
       scope={init:Math.round(d.init*f),cons:Math.round(d.cons*f),consRecd:Math.round(d.consRecd*f),appr:Math.round(d.appr*f),sett:Math.round(d.sett*f)};
       label='(Day '+dayN+' '+m.split(' ')[0]+')';
     } else {
@@ -862,6 +888,38 @@
     // reset drawer selection on re-render
     var dw=document.getElementById('commDrawer'); dw.classList.remove('open'); dw.innerHTML=''; dw.dataset.stage='';
     document.querySelectorAll('.lfrow.clk').forEach(function(r){r.classList.remove('sel');});
+    renderStageCols(); // keep side-by-side view in sync with toggle
+  }
+
+  // ===== Side-by-side stage communication (each stage = a column) =====
+  function renderStageCols(){
+    var m=document.getElementById('month').value, d=DATA[m], f=dayFactor();
+    var order=['Settlement initiated','Consent initiated','Settlement approved','Settled & closed'];
+    function sv(x){ return (typeof x==='number') ? Math.round(x*f) : x; }
+    var cols=order.map(function(st){ var c=DATA[m].comm[st]||{}; return {st:st,c:c}; });
+    // scope label
+    var dayN=parseInt(document.getElementById('sfDay').value||1,10);
+    document.getElementById('scScope').textContent = (f!==1) ? '— Day '+dayN+' '+m.split(' ')[0] : '— '+m;
+    // rows: each metric is a row, each stage a column
+    var metrics=[
+      ['Who is informed', function(c){return c.who==='applicant'?'Applicant only':(c.who?'App + Co-app':'—');}, false],
+      ['Applicant numbers', function(c){return c.app!=null?fmt(sv(c.app)):'—';}, true],
+      ['Co-applicant numbers', function(c){return c.who==='applicant'?'N/A':(c.coapp!=null?fmt(sv(c.coapp)):'—');}, true],
+      ['Unique numbers (de-dup)', function(c){return c.unique!=null?fmt(sv(c.unique)):'—';}, true],
+      ['Sent', function(c){return c.sent!=null?fmt(sv(c.sent)):'—';}, true],
+      ['Not sent — total', function(c){return c.notsent!=null?fmt(sv(c.notsent)):'—';}, true],
+      ['↳ number missing / NULL', function(c){return c.notsent!=null?fmt(sv((c.nullApp||0)+(c.nullCo||0))):'—';}, true],
+      ['↳ present but not sent', function(c){return c.notsent!=null?fmt(sv(c.notsent-((c.nullApp||0)+(c.nullCo||0)))):'—';}, true]
+    ];
+    var head='<thead><tr><th>Parameter</th>'+cols.map(function(x){return '<th class="num">'+x.st.replace('Settlement ','').replace('Settled & closed','Settled')+'</th>';}).join('')+'</tr></thead>';
+    var body='<tbody>'+metrics.map(function(mt){
+      return '<tr><td>'+mt[0]+'</td>'+cols.map(function(x){
+        var val=mt[1](x.c);
+        var red = mt[2] && /not sent|NULL|present but/.test(mt[0]) && val!=='—' && val!=='0';
+        return '<td class="num"'+(red?' style="color:#ef5f6b"':'')+'>'+val+'</td>';
+      }).join('')+'</tr>';
+    }).join('')+'</tbody>';
+    document.getElementById('stageCols').innerHTML=head+body;
   }
 
   // consent breakup toggle (open by default; click to collapse)
@@ -885,8 +943,11 @@
       drawer.classList.remove('open'); drawer.innerHTML=''; drawer.dataset.stage=''; return;
     }
     rowEl.classList.add('sel'); drawer.dataset.stage=stage;
-    var rate=Math.round(c.sent/c.unique*1000)/10;
-    var html='<h5>'+stage+' — SMS communication</h5>';
+    // scale comm numbers to the selected day when in day-wise mode
+    var f=dayFactor();
+    if(f!==1){ var sc={}; for(var k in c){ sc[k]=(typeof c[k]==='number')?Math.round(c[k]*f):c[k]; } c=sc; }
+    var rate=c.unique>0?Math.round(c.sent/c.unique*1000)/10:0;
+    var html='<h5>'+stage+' — SMS communication'+(f!==1?' (day-wise)':'')+'</h5>';
     html+='<div class="crow"><span>Who is informed</span><b>'+(c.who==='applicant'?'Applicant only':'Applicant + Co-applicant')+'</b></div>';
     if(c.who==='applicant'){
       // consent SMS: primary applicant only (never co-applicant)
