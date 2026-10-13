@@ -115,6 +115,12 @@
     color:var(--purple);border:1px solid rgba(155,123,255,.45);border-radius:6px;padding:2px 8px;margin-left:8px;vertical-align:middle;text-transform:uppercase}
   .reminder-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
   @media(max-width:700px){.reminder-grid{grid-template-columns:1fr}}
+  /* trend arrows for control tripwires */
+  .trend{font-weight:800;font-size:13px}
+  .trend.up{color:var(--bad)}   /* count rising = bad for a control whose target is 0 */
+  .trend.down{color:var(--good)}
+  .trend.flat{color:var(--muted)}
+  .ctrl-grp{font-weight:700;color:var(--accent);background:rgba(79,157,255,.07)}
   /* light funnel bars for report */
   .lfun{display:flex;flex-direction:column;gap:7px}
   .lfrow{display:grid;grid-template-columns:120px 1fr 70px;align-items:center;gap:9px;font-size:12px;color:#39424f}
@@ -185,8 +191,16 @@
       <div class="rtitle">Settlement Governance — Executive Report
         <small>Cohort: cases initiated in selected month · auto-reconciled</small>
       </div>
-      <div class="slicer">Month:
-        <select id="month" onchange="renderMonth()"><option>Sep 2026</option><option selected>Aug 2026</option><option>Jul 2026</option></select>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div class="slicer">Month:
+          <select id="month" onchange="renderMonth()"><option>Sep 2026</option><option selected>Aug 2026</option><option>Jul 2026</option></select>
+        </div>
+        <div class="slicer">Vertical:
+          <select id="vertical"><option>All</option><option>Personal Loan</option><option>Two-Wheeler</option><option>Business Loan</option><option>Consumer Durable</option></select>
+        </div>
+        <div class="slicer">P / C Flag:
+          <select id="pcflag"><option>All</option><option>Parent</option><option>Child</option></select>
+        </div>
       </div>
     </div>
 
@@ -355,6 +369,40 @@
     <div class="why"><b>Why it matters:</b> If the approval flag is slow to reach LMS, the settlement flag isn't raised on time — this is the root cause of false voids. Watching sync time against the 5–7 min SLA catches a stuck queue early, before it voids a paid case.</div>
   </div>
 
+  <!-- ============ OPERATIONAL CONTROL TRIPWIRES ============ -->
+  <div class="section-title">Operational control tripwires — pending ageing, DMS &amp; consent outcomes</div>
+  <div class="card" id="chart-tripwires">
+    <h3 style="margin:0 0 4px">Control stages — count vs target (0) with trend
+      <a class="seelogic" href="#logic-tripwires" onclick="goLogic('chart-tripwires')">See logic ▸</a>
+    </h3>
+    <p class="hint">Each control’s healthy target is <b>0</b>. <span class="trend up">▲</span> = rising (worse), <span class="trend down">▼</span> = falling (better), <span class="trend flat">▬</span> = flat. Mirrors the “Control Data Point” column from the ops tracker.</p>
+    <table>
+      <thead><tr><th>Control stage</th><th class="num">Count</th><th>Target</th><th>Trend</th></tr></thead>
+      <tbody>
+        <tr class="ctrl-grp"><td colspan="4">Pending ageing (SLA tripwires)</td></tr>
+        <tr><td>Consent pending &gt; 24 hrs</td><td class="num">140</td><td>0</td><td><span class="trend up">▲</span></td></tr>
+        <tr><td>Consent pending &gt; 48 hrs</td><td class="num">0</td><td>0</td><td><span class="trend flat">▬</span></td></tr>
+        <tr><td>Recommendation pending &gt; 6 days</td><td class="num">0</td><td>0</td><td><span class="trend flat">▬</span></td></tr>
+        <tr><td>Approval pending &gt; 4 days</td><td class="num">0</td><td>0</td><td><span class="trend flat">▬</span></td></tr>
+
+        <tr class="ctrl-grp"><td colspan="4">Document management (DMS)</td></tr>
+        <tr><td>Settlement consent not moved to DMS</td><td class="num">1</td><td>0</td><td><span class="trend down">▼</span></td></tr>
+        <tr><td>Settlement approved letter not moved to DMS</td><td class="num">0</td><td>0</td><td><span class="trend flat">▬</span></td></tr>
+
+        <tr class="ctrl-grp"><td colspan="4">Consent outcomes</td></tr>
+        <tr><td>Customer acknowledgement received</td><td class="num">18</td><td>info</td><td><span class="trend up">▲</span></td></tr>
+        <tr><td>Consent rejected by customer</td><td class="num">2</td><td>monitor</td><td><span class="trend flat">▬</span></td></tr>
+        <tr><td>Consent rejected by QC</td><td class="num">10</td><td>monitor</td><td><span class="trend up">▲</span></td></tr>
+        <tr><td>Consent pending — not received</td><td class="num">177</td><td>reduce</td><td><span class="trend up">▲</span></td></tr>
+
+        <tr class="ctrl-grp"><td colspan="4">Process state</td></tr>
+        <tr><td>Settlement not approved</td><td class="num">0</td><td>monitor</td><td><span class="trend flat">▬</span></td></tr>
+        <tr><td>Settlement not void</td><td class="num">0</td><td>monitor</td><td><span class="trend flat">▬</span></td></tr>
+      </tbody>
+    </table>
+    <div class="why"><b>Why it matters:</b> These are the “is it stuck / did a step get skipped” tripwires. Each should sit at 0; a rising arrow (▲) means a control is slipping — e.g. consent pending &gt; 24 hrs is climbing, or QC is rejecting more consents. The DMS rows ensure the signed consent / approval letter is actually filed for audit, not just captured.</div>
+  </div>
+
   <!-- ============ CLOSURE TOLERANCE: EXCESS / SHORT ============ -->
   <div class="section-title">Closure tolerance — collected vs agreed amount</div>
   <div class="card" id="chart-tolerance">
@@ -466,6 +514,17 @@
       <li><code>Sync time = LMS flag-received timestamp − Indus approval timestamp</code></li>
       <li>Target <b>≤ 5 min</b>; amber <b>5–7 min</b>; breach <b>&gt; 7 min</b>.</li>
       <li>Breaches are the leading cause of false voids — a slow flag means the settlement flag is not raised on time.</li>
+    </ul>
+  </div>
+
+  <div class="logicblock" id="logic-tripwires">
+    <h3>Operational control tripwires <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <ul>
+      <li>Each control’s healthy value is <b>0</b> (or “monitor/reduce” for the consent-outcome rows).</li>
+      <li><b>Pending ageing:</b> <code>time now − stage entry time</code> exceeding the SLA (consent &gt;24h / &gt;48h, recommendation &gt;6d, approval &gt;4d).</li>
+      <li><b>DMS:</b> consent / approval letter captured but <code>not moved to DMS</code> → document not filed for audit.</li>
+      <li><b>Trend</b> compares this period vs last: <span class="trend up">▲</span> rising (worse), <span class="trend down">▼</span> falling (better), <span class="trend flat">▬</span> flat.</li>
+      <li>Slicers (Month / Vertical / P-C Flag) scope every control.</li>
     </ul>
   </div>
 
