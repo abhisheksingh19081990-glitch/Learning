@@ -121,6 +121,12 @@
   .trend.down{color:var(--good)}
   .trend.flat{color:var(--muted)}
   .ctrl-grp{font-weight:700;color:var(--accent);background:rgba(79,157,255,.07)}
+  /* resolve prototype */
+  .rbtn{font-size:11px;font-weight:700;border:none;border-radius:6px;padding:5px 10px;cursor:pointer;background:var(--good);color:#06231a}
+  .rbtn.dis{background:#2a3550;color:#6f7d99;cursor:not-allowed}
+  .rbtn.reopen{background:#2a3550;color:#cdd6ea}
+  #resolveTable input{background:#0c1017;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:5px 8px;font-size:12px}
+  #resolveTable input:disabled{opacity:.5}
   /* light funnel bars for report */
   .lfun{display:flex;flex-direction:column;gap:7px}
   .lfrow{display:grid;grid-template-columns:120px 1fr 70px;align-items:center;gap:9px;font-size:12px;color:#39424f}
@@ -215,11 +221,18 @@
 
     <div class="rvis">
       <div class="vcard">
-        <h4 class="vhead">STAGE FLOW <span id="sf_month">(Aug 2026)</span></h4>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <h4 class="vhead" style="margin:0">STAGE FLOW <span id="sf_month">(Aug 2026)</span></h4>
+          <div class="toggle">
+            <button class="tg active" data-sfmode="total" onclick="setStageMode('total')">Total</button>
+            <button class="tg" data-sfmode="day" onclick="setStageMode('day')">Day wise</button>
+          </div>
+        </div>
         <div class="commwrap">
           <div style="flex:1">
             <div class="lfun" id="stageFlow"></div>
-            <div class="tiphint">👆 Click a stage to see its SMS communication detail →</div>
+            <div class="lvbars" id="stageFlowDay" style="display:none;height:150px"></div>
+            <div class="tiphint" id="sfTip">👆 Click a stage to see its SMS communication detail →</div>
           </div>
           <div class="commdrawer" id="commDrawer"></div>
         </div>
@@ -248,11 +261,11 @@
     <div id="waterfall"></div>
     <div class="legend"><span><span class="dot" style="background:#36c0bf"></span>Progressing</span><span><span class="dot" style="background:#9b7bff"></span>Exited</span><span class="match-ok">✓ match</span><span class="match-bad">⚠ mismatch / breach</span></div>
 
-    <h4 style="margin:18px 0 6px;font-size:13px;color:var(--muted)">Outcome reconciliation — every initiated case lands in exactly one bucket</h4>
-    <p class="hint">Withdrawal can happen at more than one point (after initiation, after consent, after recommendation). This block shows where, and the buckets add back to the initiated total.</p>
-    <table id="outcomeTable"></table>
+    <h4 style="margin:18px 0 6px;font-size:13px;color:var(--muted)">Step-by-step reconciliation — each stage ties to the stage above</h4>
+    <p class="hint">Every stage is split into <b>(what moved to the next stage)</b> + <b>(what exited or is stuck here)</b>. So each stage adds back to the one above, and the whole chain ties to the top funnel.</p>
+    <table id="outcomeTable" class="wfh"></table>
 
-    <div class="why"><b>Why it matters:</b> A withdrawal after consent is still a valid exit — this block captures it and keeps the maths honest: withdrawn (by stage) + still in progress + approved = initiated. If the total doesn't tie to the top, a case has been lost or double-counted.</div>
+    <div class="why"><b>Why it matters:</b> This proves nothing is lost between stages. Withdrawal after consent is a valid exit and is captured in its step. If any step doesn't tie, a case was lost or double-counted — a data-integrity flag.</div>
   </div>
 
   <!-- ============ CONSENT COMPLETENESS: DIGITAL + MANUAL = INITIATED ============ -->
@@ -291,6 +304,76 @@
       </table>
     </div>
     <div class="why"><b>Why it matters:</b> If digital + manual don’t add up to initiated, some cases have moved ahead with no consent on record. Here 140 have none — a compliance gap to close.</div>
+  </div>
+
+  <!-- ============ CONSENT PARAMETERS BREAKUP (like Power BI CONSENT column) ============ -->
+  <div class="section-title">Consent parameters — detailed breakup</div>
+  <div class="card" id="chart-consentparams">
+    <h3>Consent sub-states (consent sent = digital + manual)
+      <a class="seelogic" href="#logic-consentparams" onclick="goLogic('chart-consentparams')">See logic ▸</a>
+    </h3>
+    <p class="hint">Detailed consent states, mirroring the ops tracker’s CONSENT column. “Consent sent” is the sum of digital + manual.</p>
+    <table>
+      <thead><tr><th>Consent parameter</th><th class="num">Count</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td><b>Consent sent (digital + manual)</b></td><td class="num">860</td><td><span class="tag t-grn">705 digital + 141 manual + 14 both</span></td></tr>
+        <tr><td>Digitally initiated</td><td class="num">705</td><td>digital link route</td></tr>
+        <tr><td>Manually initiated</td><td class="num">155</td><td>B2B download route</td></tr>
+        <tr><td>Customer consent awaited (MTD)</td><td class="num">153</td><td><span class="tag t-amb">follow-up</span></td></tr>
+        <tr><td>Customer acknowledgement</td><td class="num">18</td><td>acknowledged</td></tr>
+        <tr><td>Consent rejected by customer</td><td class="num">2</td><td><span class="tag t-amb">monitor</span></td></tr>
+        <tr><td>Consent rejected by QC</td><td class="num">10</td><td><span class="tag t-amb">rework</span></td></tr>
+        <tr><td>Customer consent not received</td><td class="num">177</td><td><span class="tag t-red">chase</span></td></tr>
+        <tr><td>Consent pending for &gt; 24 hrs</td><td class="num">140</td><td><span class="tag t-amb">ageing</span></td></tr>
+        <tr><td>Consent pending for &gt; 48 hrs</td><td class="num">0</td><td><span class="tag t-grn">clear</span></td></tr>
+        <tr><td>Settlement consent not moved to DMS</td><td class="num">1</td><td><span class="tag t-red">file it</span></td></tr>
+      </tbody>
+    </table>
+    <div class="why"><b>Why it matters:</b> “Consent sent” is only the headline — these sub-states show <i>where</i> consent gets stuck or rejected (customer vs QC), how much is ageing, and whether the signed consent is filed to DMS for audit.</div>
+  </div>
+
+  <!-- ============ SMS NOT SENT — NUMBER NULL / NOT PRESENT ============ -->
+  <div class="section-title">SMS not sent — number missing / NULL</div>
+  <div class="card" id="chart-smsnull">
+    <h3>SMS that could not be sent because the number was not present
+      <a class="seelogic" href="#logic-smsnull" onclick="goLogic('chart-smsnull')">See logic ▸</a>
+    </h3>
+    <p class="hint">Separates “no number on record” (can’t send) from “number present but send failed” (should investigate). Applies to consent SMS and all informational SMS.</p>
+    <table>
+      <thead><tr><th>SMS event</th><th class="num">Number NULL / missing</th><th class="num">Present but not sent</th><th class="num">Total not sent</th></tr></thead>
+      <tbody>
+        <tr><td>Initiation SMS</td><td class="num">0</td><td class="num">26</td><td class="num">26</td></tr>
+        <tr><td>Consent SMS (applicant only)</td><td class="num">94</td><td class="num">46</td><td class="num">140</td></tr>
+        <tr><td>Approval SMS</td><td class="num">0</td><td class="num">12</td><td class="num">12</td></tr>
+        <tr><td>Closed / void SMS</td><td class="num">40</td><td class="num">4</td><td class="num">44</td></tr>
+      </tbody>
+    </table>
+    <div class="why"><b>Why it matters:</b> “Number NULL” means we physically cannot message that party — a <b>data-capture</b> gap to fix upstream. “Present but not sent” means a valid number existed but the SMS still didn’t go — a <b>send/system</b> failure to investigate. Treating them the same hides the real problem.</div>
+  </div>
+
+  <!-- ============ DAY-ON-DAY CUMULATIVE (SMS not sent) ============ -->
+  <div class="section-title">Day-on-day cumulative — SMS not sent (building up in month)</div>
+  <div class="card" id="chart-cumulative">
+    <h3>How the “SMS not sent” count builds up through <span id="cumMonth">Aug 2026</span>
+      <a class="seelogic" href="#logic-cumulative" onclick="goLogic('chart-cumulative')">See logic ▸</a>
+    </h3>
+    <p class="hint">Cumulative (running) count across the month — shows whether the backlog is accelerating or flattening.</p>
+    <div class="lvbars" id="cumBars" style="height:160px"></div>
+    <div class="why"><b>Why it matters:</b> A single total hides the trend. A cumulative curve that keeps steepening means the problem is getting worse day by day (act now); one that flattens means it’s under control. This is the day-on-day rising view.</div>
+  </div>
+
+  <!-- ============ RESOLVE / COMMENT (prototype) ============ -->
+  <div class="section-title">Exception resolution — comment &amp; mark resolved <span class="proposed">Prototype — saved in your browser only</span></div>
+  <div class="card" id="chart-resolve">
+    <h3>Resolve exceptions with a comment (count must match before you can resolve)
+      <a class="seelogic" href="#logic-resolve" onclick="goLogic('chart-resolve')">See logic ▸</a>
+    </h3>
+    <p class="hint">Pick an exception, enter how many cases you fixed and a comment. You can only mark it <b>Resolved</b> once your fixed-count equals the open count. Saved locally (prototype — a real tool needs a shared database).</p>
+    <table id="resolveTable">
+      <thead><tr><th>Exception</th><th class="num">Open</th><th class="num">Fixed</th><th>Comment</th><th>Status</th><th></th></tr></thead>
+      <tbody id="resolveBody"></tbody>
+    </table>
+    <div class="why"><b>Why it matters:</b> Once you fix the root cause for some cases, you need to record it and stop re-chasing them. The “count must match to resolve” rule prevents closing an exception while cases are still open. Note: this prototype stores comments in <b>your browser</b> only — production needs a shared backend so the whole team sees the same status.</div>
   </div>
 
   <!-- ============ APPLICANT & CO-APPLICANT GOVERNANCE ============ -->
@@ -495,6 +578,43 @@
     </ul>
   </div>
 
+  <div class="logicblock" id="logic-consentparams">
+    <h3>Consent parameters breakup <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <ul>
+      <li><code>Consent sent = Digitally initiated + Manually initiated</code> (includes the “both” cases once).</li>
+      <li>Sub-states track where consent stalls: awaited (MTD), acknowledged, rejected (by customer / by QC), not received, pending &gt;24h / &gt;48h.</li>
+      <li><code>Not moved to DMS</code> = consent captured but the signed document isn’t filed in the document store (audit gap).</li>
+    </ul>
+  </div>
+
+  <div class="logicblock" id="logic-smsnull">
+    <h3>SMS not sent — number missing vs send failure <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <ul>
+      <li><code>Number NULL / missing</code> = no mobile number on record → the SMS physically cannot be sent (upstream data-capture gap).</li>
+      <li><code>Present but not sent</code> = a valid number existed but the SMS did not go out → a send/system failure to investigate.</li>
+      <li><code>Total not sent = Number NULL + Present-but-not-sent</code>, per SMS event.</li>
+    </ul>
+  </div>
+
+  <div class="logicblock" id="logic-cumulative">
+    <h3>Day-on-day cumulative <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <ul>
+      <li>Running total of “SMS not sent” added each day, within the selected month.</li>
+      <li><code>Cumulative(day) = Cumulative(day−1) + new not-sent on that day</code>.</li>
+      <li>A steepening curve = the backlog is accelerating; a flattening curve = under control.</li>
+    </ul>
+  </div>
+
+  <div class="logicblock" id="logic-resolve">
+    <h3>Exception resolution (prototype) <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <ul>
+      <li>Each exception has an <b>open count</b>. Enter the number of cases you fixed and a comment.</li>
+      <li><b>You can only mark Resolved when fixed count ≥ open count</b> — the gate you asked for.</li>
+      <li>A comment is mandatory before resolving (records what was done).</li>
+      <li><b>Prototype limitation:</b> saved in your browser’s local storage only — not shared across users. A production tool needs a shared database so everyone sees the same status and history.</li>
+    </ul>
+  </div>
+
   <div class="logicblock" id="logic-void">
     <h3>Payment window &amp; void logic <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
     <ul>
@@ -556,8 +676,11 @@
   // ===== per-month data (illustrative). Each month varies. =====
   var DATA={
     'Aug 2026':{
-      init:1000, cons:860, appr:660, sett:500, wd:120, fv:7, fs:14,
+      init:1000, cons:860, consRecd:780, appr:660, sett:500, wd:120, fv:7, fs:14,
       consSmsOk:true, apprSms:648, apprShort:12,
+      // day-wise initiated across the month (sums to init); and cumulative SMS-not-sent
+      stageDay:[100,130,150,120,140,110,120,130],
+      smsNotSentDay:[{l:'1',v:3},{l:'5',v:7},{l:'10',v:12},{l:'15',v:17},{l:'20',v:21},{l:'25',v:24},{l:'30',v:26}],
       voidDay:[{l:'1',v:0.4},{l:'5',v:0.6},{l:'10',v:0.5},{l:'15',v:0.9},{l:'20',v:0.7},{l:'25',v:1.2,hot:true},{l:'30',v:0.8}],
       // party waterfalls: each reconciles top-down. coSame = co-app number same as applicant (correctly not sent)
       party:{
@@ -577,8 +700,10 @@
       wd:{afterInit:40, afterConsent:72, afterReco:8, inProgress:220}
     },
     'Sep 2026':{
-      init:1180, cons:1040, appr:815, sett:640, wd:96, fv:3, fs:6,
+      init:1180, cons:1040, consRecd:920, appr:815, sett:640, wd:96, fv:3, fs:6,
       consSmsOk:true, apprSms:812, apprShort:3,
+      stageDay:[130,150,170,140,160,130,150,150],
+      smsNotSentDay:[{l:'1',v:1},{l:'5',v:3},{l:'10',v:5},{l:'15',v:7},{l:'20',v:8},{l:'25',v:10},{l:'30',v:11}],
       voidDay:[{l:'1',v:0.3},{l:'5',v:0.4},{l:'10',v:0.6},{l:'15',v:0.5},{l:'20',v:0.8},{l:'25',v:0.6},{l:'30',v:0.5}],
       party:{
         init:{top:1180, app:{noNum:0, notSent:11}, co:{noCo:460, coSame:88, noNum:60, notSent:9}},
@@ -597,8 +722,10 @@
       wd:{afterInit:30, afterConsent:58, afterReco:8, inProgress:269}
     },
     'Jul 2026':{
-      init:910, cons:742, appr:548, sett:402, wd:138, fv:11, fs:21,
+      init:910, cons:742, consRecd:640, appr:548, sett:402, wd:138, fv:11, fs:21,
       consSmsOk:false, apprSms:521, apprShort:27,
+      stageDay:[100,120,130,110,120,100,110,120],
+      smsNotSentDay:[{l:'1',v:6},{l:'5',v:14},{l:'10',v:22},{l:'15',v:30},{l:'20',v:36},{l:'25',v:40},{l:'30',v:42}],
       voidDay:[{l:'1',v:0.6},{l:'5',v:0.9},{l:'10',v:0.7},{l:'15',v:1.1},{l:'20',v:1.4,hot:true},{l:'25',v:1.0},{l:'30',v:0.9}],
       party:{
         init:{top:910, app:{noNum:0, notSent:42}, co:{noCo:350, coSame:64, noNum:84, notSent:28}},
@@ -640,7 +767,7 @@
     document.getElementById('k_fv').textContent=fmt(d.fv);
     document.getElementById('k_fs').textContent=fmt(d.fs);
     // stage flow (exec) — clickable rows open the communication drawer
-    var stages=[['Settlement initiated',d.init],['Consent initiated',d.cons],['Settlement approved',d.appr],['Settled & closed',d.sett]];
+    var stages=[['Settlement initiated',d.init],['Consent initiated',d.cons],['Consent received',d.consRecd],['Settlement approved',d.appr],['Settled & closed',d.sett]];
     document.getElementById('stageFlow').innerHTML=stages.map(function(s){
       var w=Math.round(s[1]/d.init*100);
       return '<div class="lfrow clk" data-stage="'+s[0]+'" onclick="showComm(this,\''+s[0].replace(/'/g,"")+'\')"><span>'+s[0]+'</span><div class="lftrack"><div class="lffill" style="width:'+w+'%"></div></div><span class="lfnum">'+fmt(s[1])+'</span></div>';
@@ -648,14 +775,12 @@
     // close any open drawer when month changes
     var _dw=document.getElementById('commDrawer'); _dw.classList.remove('open'); _dw.innerHTML=''; _dw.dataset.stage='';
     document.querySelectorAll('.lfrow.clk').forEach(function(r){r.classList.remove('sel');});
-    // waterfall (detailed, case level)
-    var consMatch=d.consSmsOk?'<span class="match-ok">SMS '+fmt(d.cons)+' ✓ match</span>':'<span class="match-bad">'+(d.init-d.cons)+' pending ⚠</span>';
-    var apprMatch=d.apprShort>0?'<span class="match-bad">SMS '+fmt(d.apprSms)+' ⚠ '+d.apprShort+' short</span>':'<span class="match-ok">SMS '+fmt(d.appr)+' ✓ match</span>';
+    // waterfall (detailed, case level) — simple progressing bars
     var rows=[
-      {n:'Settlement initiated',s:'consent SMS fired',w:100,exit:false,num:'<b>'+fmt(d.init)+'</b> cases<br><span class="match-ok">SMS '+fmt(d.init)+' ✓ match</span>'},
-      {n:'Consent initiated',s:'consent raised (digital or manual)',w:Math.round(d.cons/d.init*100),exit:false,num:'<b>'+fmt(d.cons)+'</b> consents<br>'+(d.init-d.cons>0?'<span class="match-bad">'+(d.init-d.cons)+' not yet done ⚠</span>':'<span class="match-ok">✓ match</span>')},
-      {n:'Withdrawn before approval',s:'can happen after initiation, consent or recommendation',w:Math.round(wdTot/d.init*100),exit:true,num:'<b>'+fmt(wdTot)+'</b> withdrawn<br><span class="match-ok">SMS '+fmt(wdTot)+' ✓ match</span>'},
-      {n:'Settlement approved',s:'flag to LMS; SMS app + co-app',w:Math.round(d.appr/d.init*100),exit:false,num:'<b>'+fmt(d.appr)+'</b> approved<br>'+apprMatch},
+      {n:'Settlement initiated',s:'cohort top',w:100,exit:false,num:'<b>'+fmt(d.init)+'</b> cases'},
+      {n:'Consent initiated',s:'consent raised (digital or manual)',w:Math.round(d.cons/d.init*100),exit:false,num:'<b>'+fmt(d.cons)+'</b> consents'},
+      {n:'Consent received',s:'customer responded / consent captured',w:Math.round(d.consRecd/d.init*100),exit:false,num:'<b>'+fmt(d.consRecd)+'</b> received'},
+      {n:'Settlement approved',s:'approved after consent received',w:Math.round(d.appr/d.init*100),exit:false,num:'<b>'+fmt(d.appr)+'</b> approved'},
       {n:'Settled & closed',s:'end state (SOA)',w:Math.round(d.sett/d.init*100),exit:false,num:'<b>'+fmt(d.sett)+'</b> settled'}
     ];
     document.getElementById('waterfall').innerHTML=rows.map(function(r){
@@ -663,19 +788,52 @@
         '<div class="wf-track"><div class="wf-fill '+(r.exit?'wf-exit':'wf-stay')+'" style="width:'+r.w+'%"></div></div>'+
         '<div class="wf-num">'+r.num+'</div></div>';
     }).join('');
-    // outcome reconciliation — withdrawn by stage + in progress + approved = initiated
-    var w=d.wd, outTot=w.afterInit+w.afterConsent+w.afterReco+w.inProgress+d.appr;
+    // ===== Option B: step-by-step reconciliation (each stage = next stage + dropped/stuck) =====
+    var w=d.wd;
+    // between initiated -> consent initiated: withdrawn after init + still awaiting consent
+    var awaitConsent=d.init - d.cons - w.afterInit;
+    // between consent initiated -> consent received: not-yet-responded (no withdrawal modelled here)
+    var consPending=d.cons - d.consRecd;
+    // between consent received -> approved: withdrawn after consent/reco + in-progress awaiting approval
+    var wdPost=w.afterConsent + w.afterReco;
+    var awaitApproval=d.consRecd - d.appr - wdPost;
+    // between approved -> settled: not yet settled (in payment window / grace / voided)
+    var notSettled=d.appr - d.sett;
+    var sr='';
+    // step 1
+    sr+='<tr class="wfh-top"><td>Settlement initiated</td><td class="num">'+fmt(d.init)+'</td></tr>'+
+        '<tr class="wfh-drop"><td>− Withdrawn after initiation</td><td class="num">'+fmt(w.afterInit)+'</td></tr>'+
+        '<tr class="wfh-drop"><td>− Still awaiting consent (not raised yet)</td><td class="num">'+fmt(awaitConsent)+'</td></tr>'+
+        '<tr class="wfh-end"><td>= Consent initiated</td><td class="num">'+fmt(d.cons)+'</td></tr>';
+    // step 2
+    sr+='<tr class="wfh-top"><td>Consent initiated</td><td class="num">'+fmt(d.cons)+'</td></tr>'+
+        '<tr class="wfh-drop"><td>− Consent pending (customer not responded)</td><td class="num">'+fmt(consPending)+'</td></tr>'+
+        '<tr class="wfh-end"><td>= Consent received</td><td class="num">'+fmt(d.consRecd)+'</td></tr>';
+    // step 3
+    sr+='<tr class="wfh-top"><td>Consent received</td><td class="num">'+fmt(d.consRecd)+'</td></tr>'+
+        '<tr class="wfh-drop"><td>− Withdrawn after consent / recommendation</td><td class="num">'+fmt(wdPost)+'</td></tr>'+
+        '<tr class="wfh-drop"><td>− Awaiting approval (in progress)</td><td class="num">'+fmt(awaitApproval)+'</td></tr>'+
+        '<tr class="wfh-end"><td>= Settlement approved</td><td class="num">'+fmt(d.appr)+'</td></tr>';
+    // step 4
+    sr+='<tr class="wfh-top"><td>Settlement approved</td><td class="num">'+fmt(d.appr)+'</td></tr>'+
+        '<tr class="wfh-drop"><td>− Not yet settled (paying / grace / voided)</td><td class="num">'+fmt(notSettled)+'</td></tr>'+
+        '<tr class="wfh-end"><td>= Settled &amp; closed</td><td class="num">'+fmt(d.sett)+'</td></tr>';
+    var tie = (w.afterInit+awaitConsent===d.init-d.cons) && (consPending===d.cons-d.consRecd) && (wdPost+awaitApproval===d.consRecd-d.appr) && (notSettled===d.appr-d.sett);
     document.getElementById('outcomeTable').innerHTML=
-      '<thead><tr><th>Terminal outcome (of '+fmt(d.init)+' initiated)</th><th class="num">Cases</th><th class="num">% of initiated</th></tr></thead><tbody>'+
-      '<tr><td>Withdrawn — after initiation (before consent)</td><td class="num">'+fmt(w.afterInit)+'</td><td class="num">'+pct(w.afterInit,d.init)+'%</td></tr>'+
-      '<tr><td>Withdrawn — after consent (before approval)</td><td class="num">'+fmt(w.afterConsent)+'</td><td class="num">'+pct(w.afterConsent,d.init)+'%</td></tr>'+
-      '<tr><td>Withdrawn — after recommendation (before approval)</td><td class="num">'+fmt(w.afterReco)+'</td><td class="num">'+pct(w.afterReco,d.init)+'%</td></tr>'+
-      '<tr><td>Still in progress (not yet approved / withdrawn)</td><td class="num">'+fmt(w.inProgress)+'</td><td class="num">'+pct(w.inProgress,d.init)+'%</td></tr>'+
-      '<tr><td>Approved (→ paid / void tracked separately)</td><td class="num">'+fmt(d.appr)+'</td><td class="num">'+pct(d.appr,d.init)+'%</td></tr>'+
-      '<tr class="total"><td>Total (reconciles to initiated)</td><td class="num">'+fmt(outTot)+'</td><td class="num">'+(outTot===d.init?'<span class="tag t-grn">✓ ties</span>':'<span class="tag t-red">⚠ '+fmt(outTot)+' ≠ '+fmt(d.init)+'</span>')+'</td></tr>'+
+      '<thead><tr><th>Step reconciliation — each stage splits into (next stage + exits)</th><th class="num">Cases</th></tr></thead><tbody>'+sr+
+      '<tr class="total"><td>Every stage ties to the one above</td><td class="num">'+(tie?'<span class="tag t-grn">✓ ties</span>':'<span class="tag t-red">⚠ check</span>')+'</td></tr>'+
       '</tbody>';
     setVoid(curMode); // refresh void chart (day view is month-specific)
+    setStageMode(curSFMode); // refresh stage-flow (day view is month-specific)
     setParty(curPStage); // refresh party waterfall
+    // day-on-day cumulative — SMS not sent
+    document.getElementById('cumMonth').textContent=m;
+    var cum=d.smsNotSentDay, cmax=cum[cum.length-1].v;
+    document.getElementById('cumBars').innerHTML=cum.map(function(x){
+      var h=Math.round((x.v/cmax)*88)+12;
+      return '<div class="lvbar"><div class="v">'+x.v+'</div><div class="b" style="height:'+h+'%"></div><div class="l">D'+x.l+'</div></div>';
+    }).join('');
+    renderResolve();
     // payment & void reconciliation (sums to approved)
     document.getElementById('voidApprMonth').textContent=m;
     var pv=d.pv, voidTot=pv.voidGenuine+pv.voidFalse, tot=pv.paid+pv.within90+pv.grace+voidTot;
@@ -730,6 +888,14 @@
   function showComm(rowEl,stage){
     var m=document.getElementById('month').value, c=DATA[m].comm[stage];
     var drawer=document.getElementById('commDrawer');
+    // stage has no SMS event (e.g. Consent received is a customer response)
+    if(!c){
+      document.querySelectorAll('.lfrow.clk').forEach(function(r){r.classList.remove('sel');});
+      if(drawer.classList.contains('open') && drawer.dataset.stage===stage){drawer.classList.remove('open');drawer.innerHTML='';drawer.dataset.stage='';return;}
+      rowEl.classList.add('sel'); drawer.dataset.stage=stage;
+      drawer.innerHTML='<h5>'+stage+'</h5><div class="tiphint">No SMS is triggered at this stage — it is a customer response / state, not an outbound message.</div>';
+      drawer.classList.add('open'); return;
+    }
     document.querySelectorAll('.lfrow.clk').forEach(function(r){r.classList.remove('sel');});
     // clicking the already-selected row closes the drawer
     if(drawer.classList.contains('open') && drawer.dataset.stage===stage){
@@ -775,8 +941,66 @@
       return '<div class="lvbar"><div class="v">'+d.v+'%</div><div class="b'+(d.hot?' hot':'')+'" style="height:'+h+'%"></div><div class="l">'+d.l+'</div></div>';
     }).join('');
     document.getElementById('voidHdr').textContent='VOID RATE — '+(mode==='day'?'DAY WISE ('+m+')':'MONTH WISE');
-    document.querySelectorAll('.tg').forEach(function(b){b.classList.toggle('active',b.dataset.mode===mode);});
+    document.querySelectorAll('.tg[data-mode]').forEach(function(b){b.classList.toggle('active',b.dataset.mode===mode);});
   }
+
+  // ===== Stage Flow: total (funnel bars) vs day-wise (initiated per day) =====
+  var curSFMode='total';
+  function setStageMode(mode){
+    curSFMode=mode;
+    var m=document.getElementById('month').value, d=DATA[m];
+    var flow=document.getElementById('stageFlow'), day=document.getElementById('stageFlowDay'), tip=document.getElementById('sfTip');
+    if(mode==='day'){
+      flow.style.display='none'; tip.style.display='none'; day.style.display='flex';
+      var arr=d.stageDay, max=Math.max.apply(null,arr), labels=['1-4','5-8','9-12','13-16','17-20','21-24','25-28','29-31'];
+      day.innerHTML=arr.map(function(v,i){
+        var h=Math.round((v/max)*90)+10;
+        return '<div class="lvbar"><div class="v">'+fmt(v)+'</div><div class="b" style="height:'+h+'%"></div><div class="l">'+labels[i]+'</div></div>';
+      }).join('');
+    } else {
+      flow.style.display='block'; tip.style.display='block'; day.style.display='none';
+    }
+    document.querySelectorAll('.tg[data-sfmode]').forEach(function(b){b.classList.toggle('active',b.dataset.sfmode===mode);});
+  }
+
+  // ===== Exception resolution prototype (localStorage) =====
+  var EXCEPTIONS=[
+    {id:'sms_not_sent', label:'SMS present but not sent (all stages)', open:94},
+    {id:'number_null', label:'Number NULL — cannot send SMS', open:134},
+    {id:'consent_qc_reject', label:'Consent rejected by QC', open:10},
+    {id:'consent_not_dms', label:'Consent not moved to DMS', open:1}
+  ];
+  function loadRes(){ try{ return JSON.parse(localStorage.getItem('settlementResolve')||'{}'); }catch(e){ return {}; } }
+  function saveRes(s){ localStorage.setItem('settlementResolve', JSON.stringify(s)); }
+  function renderResolve(){
+    var st=loadRes();
+    document.getElementById('resolveBody').innerHTML=EXCEPTIONS.map(function(e){
+      var r=st[e.id]||{fixed:0,comment:'',resolved:false};
+      var canResolve = (r.fixed>=e.open);
+      var statusTag = r.resolved ? '<span class="tag t-grn">Resolved</span>'
+                    : (r.fixed>0 ? '<span class="tag t-amb">In progress</span>' : '<span class="tag t-red">Open</span>');
+      var btn = r.resolved
+        ? '<button class="rbtn reopen" onclick="reopenExc(\''+e.id+'\')">Re-open</button>'
+        : '<button class="rbtn '+(canResolve?'':'dis')+'" '+(canResolve?'':'disabled')+' onclick="resolveExc(\''+e.id+'\')">Mark resolved</button>';
+      return '<tr>'+
+        '<td>'+e.label+'</td>'+
+        '<td class="num">'+fmt(e.open)+'</td>'+
+        '<td class="num"><input type="number" min="0" value="'+r.fixed+'" style="width:70px" onchange="setFixed(\''+e.id+'\',this.value)" '+(r.resolved?'disabled':'')+'></td>'+
+        '<td><input type="text" value="'+(r.comment||'').replace(/"/g,'&quot;')+'" placeholder="what you fixed..." style="width:100%" onchange="setComment(\''+e.id+'\',this.value)" '+(r.resolved?'disabled':'')+'></td>'+
+        '<td>'+statusTag+(canResolve||r.resolved?'':' <small style="color:var(--muted)">need '+fmt(e.open)+'</small>')+'</td>'+
+        '<td>'+btn+'</td>'+
+      '</tr>';
+    }).join('');
+  }
+  function setFixed(id,v){ var s=loadRes(); s[id]=s[id]||{fixed:0,comment:'',resolved:false}; s[id].fixed=parseInt(v||0,10); saveRes(s); renderResolve(); }
+  function setComment(id,v){ var s=loadRes(); s[id]=s[id]||{fixed:0,comment:'',resolved:false}; s[id].comment=v; saveRes(s); }
+  function resolveExc(id){
+    var e=EXCEPTIONS.filter(function(x){return x.id===id;})[0], s=loadRes(), r=s[id]||{fixed:0,comment:'',resolved:false};
+    if(r.fixed<e.open){ alert('You can only resolve once fixed count ('+r.fixed+') reaches the open count ('+e.open+').'); return; }
+    if(!r.comment){ alert('Please add a comment describing what you resolved.'); return; }
+    r.resolved=true; s[id]=r; saveRes(s); renderResolve();
+  }
+  function reopenExc(id){ var s=loadRes(); if(s[id]){ s[id].resolved=false; saveRes(s); } renderResolve(); }
 
   // ===== See-logic / Back navigation =====
   var returnTo='';
