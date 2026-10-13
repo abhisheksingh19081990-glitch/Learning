@@ -221,7 +221,16 @@
 
     <div class="rvis">
       <div class="vcard">
-        <h4 class="vhead">STAGE FLOW <span id="sf_month">(Aug 2026)</span></h4>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+          <h4 class="vhead" style="margin:0">STAGE FLOW <span id="sf_month">(Aug 2026)</span></h4>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="sfDay" style="display:none;background:#fff;border:1px solid #d8deea;border-radius:7px;padding:4px 8px;font-size:12px;color:#1f2733" onchange="renderStageFlow()"></select>
+            <div class="toggle">
+              <button class="tg active" data-sfmode="month" onclick="setStageMode('month')">Month wise</button>
+              <button class="tg" data-sfmode="day" onclick="setStageMode('day')">Day wise</button>
+            </div>
+          </div>
+        </div>
         <div class="commwrap">
           <div style="flex:1">
             <div class="lfun" id="stageFlow"></div>
@@ -334,20 +343,6 @@
     <p class="hint">Cumulative (running) count across the month — shows whether the backlog is accelerating or flattening.</p>
     <div class="lvbars" id="cumBars" style="height:160px"></div>
     <div class="why"><b>Why it matters:</b> A single total hides the trend. A cumulative curve that keeps steepening means the problem is getting worse day by day (act now); one that flattens means it’s under control. This is the day-on-day rising view.</div>
-  </div>
-
-  <!-- ============ RESOLVE / COMMENT (prototype) ============ -->
-  <div class="section-title">Exception resolution — comment &amp; mark resolved <span class="proposed">Prototype — saved in your browser only</span></div>
-  <div class="card" id="chart-resolve">
-    <h3>Resolve exceptions with a comment (count must match before you can resolve)
-      <a class="seelogic" href="#logic-resolve" onclick="goLogic('chart-resolve')">See logic ▸</a>
-    </h3>
-    <p class="hint">Pick an exception, enter how many cases you fixed and a comment. You can only mark it <b>Resolved</b> once your fixed-count equals the open count. Saved locally (prototype — a real tool needs a shared database).</p>
-    <table id="resolveTable">
-      <thead><tr><th>Exception</th><th class="num">Open</th><th class="num">Fixed</th><th>Comment</th><th>Status</th><th></th></tr></thead>
-      <tbody id="resolveBody"></tbody>
-    </table>
-    <div class="why"><b>Why it matters:</b> Once you fix the root cause for some cases, you need to record it and stop re-chasing them. The “count must match to resolve” rule prevents closing an exception while cases are still open. Note: this prototype stores comments in <b>your browser</b> only — production needs a shared backend so the whole team sees the same status.</div>
   </div>
 
   <!-- ============ APPLICANT & CO-APPLICANT GOVERNANCE ============ -->
@@ -570,15 +565,6 @@
     </ul>
   </div>
 
-  <div class="logicblock" id="logic-resolve">
-    <h3>Exception resolution (prototype) <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
-    <ul>
-      <li>Each exception has an <b>open count</b>. Enter the number of cases you fixed and a comment.</li>
-      <li><b>You can only mark Resolved when fixed count ≥ open count</b> — the gate you asked for.</li>
-      <li>A comment is mandatory before resolving (records what was done).</li>
-      <li><b>Prototype limitation:</b> saved in your browser’s local storage only — not shared across users. A production tool needs a shared database so everyone sees the same status and history.</li>
-    </ul>
-  </div>
 
   <div class="logicblock" id="logic-void">
     <h3>Payment window &amp; void logic <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
@@ -724,7 +710,6 @@
     var wdTot=d.wd.afterInit+d.wd.afterConsent+d.wd.afterReco; // total withdrawn (all pre-approval points)
     // labels
     document.getElementById('m1').textContent=m;
-    document.getElementById('sf_month').textContent='('+m+')';
     // KPI tiles
     document.getElementById('k_init').textContent=fmt(d.init);
     document.getElementById('k_cons').textContent=fmt(d.cons);
@@ -734,12 +719,10 @@
     document.getElementById('k_wd').textContent=fmt(wdTot);
     document.getElementById('k_fv').textContent=fmt(d.fv);
     document.getElementById('k_fs').textContent=fmt(d.fs);
-    // stage flow (exec) — clickable rows open the communication drawer
-    var stages=[['Settlement initiated',d.init],['Consent initiated',d.cons],['Consent received',d.consRecd],['Settlement approved',d.appr],['Settled & closed',d.sett]];
-    document.getElementById('stageFlow').innerHTML=stages.map(function(s){
-      var w=Math.round(s[1]/d.init*100);
-      return '<div class="lfrow clk" data-stage="'+s[0]+'" onclick="showComm(this,\''+s[0].replace(/'/g,"")+'\')"><span>'+s[0]+'</span><div class="lftrack"><div class="lffill" style="width:'+w+'%"></div></div><span class="lfnum">'+fmt(s[1])+'</span></div>';
-    }).join('');
+    // populate day picker for the selected month (illustrative days)
+    var daySel=document.getElementById('sfDay');
+    if(daySel.options.length===0){ for(var dd=1; dd<=30; dd++){ var o=document.createElement('option'); o.value=dd; o.textContent='Day '+dd; daySel.appendChild(o); } }
+    renderStageFlow();
     // close any open drawer when month changes
     var _dw=document.getElementById('commDrawer'); _dw.classList.remove('open'); _dw.innerHTML=''; _dw.dataset.stage='';
     document.querySelectorAll('.lfrow.clk').forEach(function(r){r.classList.remove('sel');});
@@ -802,7 +785,6 @@
       var h=Math.round((x.v/cmax)*88)+12;
       return '<div class="lvbar"><div class="v">'+x.v+'</div><div class="b" style="height:'+h+'%"></div><div class="l">D'+x.l+'</div></div>';
     }).join('');
-    renderResolve();
     // payment & void reconciliation (sums to approved)
     document.getElementById('voidApprMonth').textContent=m;
     var pv=d.pv, voidTot=pv.voidGenuine+pv.voidFalse, tot=pv.paid+pv.within90+pv.grace+voidTot;
@@ -848,6 +830,38 @@
       row('wfh-end','= Co-applicants SENT the SMS',coSent);
     document.getElementById('wfCoapp').innerHTML='<tbody>'+cHtml+'</tbody>';
     document.querySelectorAll('.tg2').forEach(function(b){b.classList.toggle('active',b.dataset.pstage===stage);});
+  }
+
+  // ===== Stage Flow render — same format for month-wise and day-wise =====
+  var curSFMode='month';
+  function setStageMode(mode){
+    curSFMode=mode;
+    document.getElementById('sfDay').style.display = (mode==='day') ? 'inline-block' : 'none';
+    document.querySelectorAll('.tg[data-sfmode]').forEach(function(b){b.classList.toggle('active',b.dataset.sfmode===mode);});
+    renderStageFlow();
+  }
+  function renderStageFlow(){
+    var m=document.getElementById('month').value, d=DATA[m];
+    var scope, label;
+    if(curSFMode==='day'){
+      // scale the month's stage counts down to one representative day (same ratios, same format)
+      var dayN=parseInt(document.getElementById('sfDay').value||1,10);
+      var f=(d.stageDay[(dayN-1)%d.stageDay.length])/d.init; // that day's share of the month
+      scope={init:Math.round(d.init*f),cons:Math.round(d.cons*f),consRecd:Math.round(d.consRecd*f),appr:Math.round(d.appr*f),sett:Math.round(d.sett*f)};
+      label='(Day '+dayN+' '+m.split(' ')[0]+')';
+    } else {
+      scope={init:d.init,cons:d.cons,consRecd:d.consRecd,appr:d.appr,sett:d.sett};
+      label='('+m+')';
+    }
+    document.getElementById('sf_month').textContent=label;
+    var stages=[['Settlement initiated',scope.init],['Consent initiated',scope.cons],['Consent received',scope.consRecd],['Settlement approved',scope.appr],['Settled & closed',scope.sett]];
+    document.getElementById('stageFlow').innerHTML=stages.map(function(s){
+      var w=scope.init>0?Math.round(s[1]/scope.init*100):0;
+      return '<div class="lfrow clk" data-stage="'+s[0]+'" onclick="showComm(this,\''+s[0].replace(/'/g,"")+'\')"><span>'+s[0]+'</span><div class="lftrack"><div class="lffill" style="width:'+w+'%"></div></div><span class="lfnum">'+fmt(s[1])+'</span></div>';
+    }).join('');
+    // reset drawer selection on re-render
+    var dw=document.getElementById('commDrawer'); dw.classList.remove('open'); dw.innerHTML=''; dw.dataset.stage='';
+    document.querySelectorAll('.lfrow.clk').forEach(function(r){r.classList.remove('sel');});
   }
 
   // consent breakup toggle (open by default; click to collapse)
@@ -917,45 +931,6 @@
     document.getElementById('voidHdr').textContent='VOID RATE — '+(mode==='day'?'DAY WISE ('+m+')':'MONTH WISE');
     document.querySelectorAll('.tg[data-mode]').forEach(function(b){b.classList.toggle('active',b.dataset.mode===mode);});
   }
-
-  // ===== Exception resolution prototype (localStorage) =====
-  var EXCEPTIONS=[
-    {id:'sms_not_sent', label:'SMS present but not sent (all stages)', open:94},
-    {id:'number_null', label:'Number NULL — cannot send SMS', open:134},
-    {id:'consent_qc_reject', label:'Consent rejected by QC', open:10},
-    {id:'consent_not_dms', label:'Consent not moved to DMS', open:1}
-  ];
-  function loadRes(){ try{ return JSON.parse(localStorage.getItem('settlementResolve')||'{}'); }catch(e){ return {}; } }
-  function saveRes(s){ localStorage.setItem('settlementResolve', JSON.stringify(s)); }
-  function renderResolve(){
-    var st=loadRes();
-    document.getElementById('resolveBody').innerHTML=EXCEPTIONS.map(function(e){
-      var r=st[e.id]||{fixed:0,comment:'',resolved:false};
-      var canResolve = (r.fixed>=e.open);
-      var statusTag = r.resolved ? '<span class="tag t-grn">Resolved</span>'
-                    : (r.fixed>0 ? '<span class="tag t-amb">In progress</span>' : '<span class="tag t-red">Open</span>');
-      var btn = r.resolved
-        ? '<button class="rbtn reopen" onclick="reopenExc(\''+e.id+'\')">Re-open</button>'
-        : '<button class="rbtn '+(canResolve?'':'dis')+'" '+(canResolve?'':'disabled')+' onclick="resolveExc(\''+e.id+'\')">Mark resolved</button>';
-      return '<tr>'+
-        '<td>'+e.label+'</td>'+
-        '<td class="num">'+fmt(e.open)+'</td>'+
-        '<td class="num"><input type="number" min="0" value="'+r.fixed+'" style="width:70px" onchange="setFixed(\''+e.id+'\',this.value)" '+(r.resolved?'disabled':'')+'></td>'+
-        '<td><input type="text" value="'+(r.comment||'').replace(/"/g,'&quot;')+'" placeholder="what you fixed..." style="width:100%" onchange="setComment(\''+e.id+'\',this.value)" '+(r.resolved?'disabled':'')+'></td>'+
-        '<td>'+statusTag+(canResolve||r.resolved?'':' <small style="color:var(--muted)">need '+fmt(e.open)+'</small>')+'</td>'+
-        '<td>'+btn+'</td>'+
-      '</tr>';
-    }).join('');
-  }
-  function setFixed(id,v){ var s=loadRes(); s[id]=s[id]||{fixed:0,comment:'',resolved:false}; s[id].fixed=parseInt(v||0,10); saveRes(s); renderResolve(); }
-  function setComment(id,v){ var s=loadRes(); s[id]=s[id]||{fixed:0,comment:'',resolved:false}; s[id].comment=v; saveRes(s); }
-  function resolveExc(id){
-    var e=EXCEPTIONS.filter(function(x){return x.id===id;})[0], s=loadRes(), r=s[id]||{fixed:0,comment:'',resolved:false};
-    if(r.fixed<e.open){ alert('You can only resolve once fixed count ('+r.fixed+') reaches the open count ('+e.open+').'); return; }
-    if(!r.comment){ alert('Please add a comment describing what you resolved.'); return; }
-    r.resolved=true; s[id]=r; saveRes(s); renderResolve();
-  }
-  function reopenExc(id){ var s=loadRes(); if(s[id]){ s[id].resolved=false; saveRes(s); } renderResolve(); }
 
   // ===== See-logic / Back navigation =====
   var returnTo='';
