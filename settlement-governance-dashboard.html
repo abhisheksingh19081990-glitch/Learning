@@ -100,6 +100,14 @@
   .logicblock ul{margin:8px 0;padding-left:20px;font-size:13px;color:#cdd6ea}
   .logicblock li{margin:5px 0}
   :target{scroll-margin-top:14px}
+  /* highlight the logic block you were sent to */
+  .logicblock.lit{border-color:var(--accent);box-shadow:0 0 0 2px rgba(79,157,255,.55),0 6px 22px rgba(0,0,0,.35);
+    background:linear-gradient(180deg,rgba(79,157,255,.10),var(--panel))}
+  .logicblock .here{display:none;font-size:11px;font-weight:800;letter-spacing:.4px;color:#06111f;background:var(--accent);
+    border-radius:6px;padding:2px 9px;margin-left:10px;vertical-align:middle;text-transform:uppercase}
+  .logicblock.lit .here{display:inline-block}
+  @keyframes litflash{0%{box-shadow:0 0 0 3px rgba(79,157,255,.85),0 6px 22px rgba(0,0,0,.35)}100%{box-shadow:0 0 0 2px rgba(79,157,255,.55),0 6px 22px rgba(0,0,0,.35)}}
+  .logicblock.lit{animation:litflash 1.1s ease 2}
   /* void payment-window timeline */
   .vtl{display:flex;align-items:stretch;gap:4px;margin:6px 0 2px;flex-wrap:wrap}
   .vtl-seg{flex:1;min-width:120px;border-radius:7px;padding:10px 12px;color:#06111f;display:flex;flex-direction:column;justify-content:center}
@@ -523,7 +531,7 @@
   <div class="section-title" id="logic-section">Logic &amp; calculation reference</div>
 
   <div class="logicblock" id="logic-waterfall">
-    <h3>Monthly cohort waterfall &amp; outcome reconciliation <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <h3>Monthly cohort waterfall &amp; outcome reconciliation <span class="here">▸ You are viewing this</span> <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
     <ul>
       <li><b>Cohort</b> = all cases where <code>settlement_initiated_date</code> falls in the selected month.</li>
       <li>Each stage counts that <b>same</b> cohort as it reaches the stage (a subset — the funnel narrows).</li>
@@ -535,7 +543,7 @@
   </div>
 
   <div class="logicblock" id="logic-party">
-    <h3>Who was sent the SMS — party waterfall <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <h3>Who was sent the SMS — party waterfall <span class="here">▸ You are viewing this</span> <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
     <ul>
       <li>Applies to <b>informational</b> SMS (initiated / approved / closed / void) — sent to <b>both</b> parties.</li>
       <li><b>Consent SMS is excluded here</b> — it goes to the primary applicant only (see Consent logic).</li>
@@ -548,7 +556,7 @@
   </div>
 
   <div class="logicblock" id="logic-consent">
-    <h3>Consent completeness &amp; consent SMS <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <h3>Consent completeness &amp; consent SMS <span class="here">▸ You are viewing this</span> <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
     <ul>
       <li><b>Consent is taken from the primary applicant only.</b> A consent-request SMS is <b>never</b> sent to the co-applicant.</li>
       <li>Co-applicant receives <b>informational</b> SMS only on: initiated, cancelled (withdrawn), closed, void.</li>
@@ -559,7 +567,7 @@
   </div>
 
   <div class="logicblock" id="logic-stagecols">
-    <h3>Stage communication side-by-side <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <h3>Stage communication side-by-side <span class="here">▸ You are viewing this</span> <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
     <ul>
       <li>Same SMS breakup as the click-drawer, laid out with <b>one column per stage</b> and parameters as rows.</li>
       <li>Follows the Stage Flow Month/Day toggle: in day-wise mode every number is scaled to the selected day.</li>
@@ -569,7 +577,7 @@
   </div>
 
   <div class="logicblock" id="logic-consentparams">
-    <h3>Consent parameters breakup <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <h3>Consent parameters breakup <span class="here">▸ You are viewing this</span> <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
     <ul>
       <li><code>Consent sent = Digitally initiated + Manually initiated</code> (includes the “both” cases once).</li>
       <li>Sub-states track where consent stalls: awaited (MTD), acknowledged, rejected (by customer / by QC), not received, pending &gt;24h / &gt;48h.</li>
@@ -578,7 +586,7 @@
   </div>
 
   <div class="logicblock" id="logic-cumulative">
-    <h3>Day-on-day cumulative <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <h3>Day-on-day cumulative <span class="here">▸ You are viewing this</span> <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
     <ul>
       <li>Running total of “SMS not sent” added each day, within the selected month.</li>
       <li><code>Cumulative(day) = Cumulative(day−1) + new not-sent on that day</code>.</li>
@@ -588,7 +596,7 @@
 
 
   <div class="logicblock" id="logic-void">
-    <h3>Payment window &amp; void logic <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <h3>Payment window &amp; void logic <span class="here">▸ You are viewing this</span> <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
     <ul>
       <li><code>Final payment date (known to customer) = Approval date + 90 days</code>. Customer may pay the full agreed amount any time within these 90 days.</li>
       <li><code>Grace end = Approval date + 90 + 45 = +135 days</code>. Customer can still pay in the 45-day grace, <b>but is not told it exists</b>.</li>
@@ -601,7 +609,7 @@
   </div>
 
   <div class="logicblock" id="logic-flagsync">
-    <h3>Flag-sync SLA (Indus → LMS) <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <h3>Flag-sync SLA (Indus → LMS) <span class="here">▸ You are viewing this</span> <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
     <ul>
       <li><code>Sync time = LMS flag-received timestamp − Indus approval timestamp</code></li>
       <li>Target <b>≤ 5 min</b>; amber <b>5–7 min</b>; breach <b>&gt; 7 min</b>.</li>
@@ -610,7 +618,7 @@
   </div>
 
   <div class="logicblock" id="logic-tripwires">
-    <h3>Operational control tripwires <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <h3>Operational control tripwires <span class="here">▸ You are viewing this</span> <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
     <ul>
       <li>Each control’s healthy value is <b>0</b> (or “monitor/reduce” for the consent-outcome rows).</li>
       <li><b>Pending ageing:</b> <code>time now − stage entry time</code> exceeding the SLA (consent &gt;24h / &gt;48h, recommendation &gt;6d, approval &gt;4d).</li>
@@ -621,7 +629,7 @@
   </div>
 
   <div class="logicblock" id="logic-reminder">
-    <h3>Pre-payment reminder (proposed) <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <h3>Pre-payment reminder (proposed) <span class="here">▸ You are viewing this</span> <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
     <ul>
       <li><b>Status: proposed</b> — not yet in the live workflow.</li>
       <li><code>T-1 reminder date = Payment date − 1 day</code> (day-before nudge).</li>
@@ -633,7 +641,7 @@
   </div>
 
   <div class="logicblock" id="logic-tolerance">
-    <h3>Closure tolerance (collected vs agreed) <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
+    <h3>Closure tolerance (collected vs agreed) <span class="here">▸ You are viewing this</span> <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
     <ul>
       <li><code>Shortfall = Agreed amount − Collected amount</code></li>
       <li>If <code>Shortfall ≤ ₹300</code> → the case is <b>allowed to close</b> (must not void over a small shortfall). Max tolerance = ₹300.</li>
@@ -995,8 +1003,16 @@
 
   // ===== See-logic / Back navigation =====
   var returnTo='';
-  function goLogic(chartId){ returnTo=chartId; } // href handles the jump to #logic-*
+  function goLogic(chartId){
+    returnTo=chartId; // href handles the jump to #logic-*
+    // highlight the matching logic block so the user knows which to read
+    var targetId='logic-'+chartId.replace('chart-','');
+    document.querySelectorAll('.logicblock.lit').forEach(function(b){b.classList.remove('lit');});
+    var tgt=document.getElementById(targetId);
+    if(tgt){ tgt.classList.add('lit'); }
+  }
   function goBack(){
+    document.querySelectorAll('.logicblock.lit').forEach(function(b){b.classList.remove('lit');});
     if(returnTo){ location.hash=''; document.getElementById(returnTo).scrollIntoView({behavior:'smooth',block:'start'}); }
     else { window.scrollTo({top:0,behavior:'smooth'}); }
   }
