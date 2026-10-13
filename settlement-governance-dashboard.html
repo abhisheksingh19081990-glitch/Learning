@@ -189,10 +189,55 @@
   .toggle{display:inline-flex;background:#eef1f7;border-radius:7px;padding:2px}
   .tg{border:none;background:transparent;font-size:11px;font-weight:600;color:#5b6676;padding:4px 9px;border-radius:5px;cursor:pointer}
   .tg.active{background:#2f6fd0;color:#fff}
+  /* floating download-PDF button */
+  .pdfbtn{position:fixed;top:16px;right:18px;z-index:50;background:var(--accent);color:#fff;border:none;
+    border-radius:9px;padding:9px 15px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+  .pdfbtn:hover{background:#3b86e6}
+  .printhead{display:none}
+  /* ===== PRINT / PDF stylesheet ===== */
+  @media print{
+    @page{size:A4 landscape;margin:12mm}
+    body{background:#fff !important;color:#111 !important}
+    header{border-color:#ccc}
+    header h1{color:#1f2733}
+    header p,.monthpick{color:#333}
+    /* hide interactive controls that make no sense on paper */
+    .pdfbtn,.toggle,.seelogic,.backbtn,.tiphint,.slicer select{display:none !important}
+    .slicer{color:#333}
+    /* print title header */
+    .printhead{display:block;text-align:center;margin-bottom:10px}
+    .printhead h2{margin:0;font-size:18px;color:#1f2733}
+    .printhead small{color:#555}
+    /* light theme for cards/tables */
+    .card,.logicblock{background:#fff !important;border:1px solid #cfd6e4 !important;box-shadow:none !important;break-inside:avoid}
+    .section-title{color:#1f2733 !important;border-left-color:#2f6fd0}
+    .why{background:#f4f6fb !important;color:#222 !important;border-color:#cfd6e4}
+    .card h3,.card h4,.vhead{color:#1f2733 !important}
+    .card .hint{color:#555 !important}
+    table,th,td{color:#111 !important}
+    th{color:#444 !important}
+    td.num,.wf-num,.lfnum{color:#111 !important}
+    .wf-num b{color:#000 !important}
+    .kpi .value{color:#1f2733 !important}
+    .kpi .label,.kpi .sub{color:#555 !important}
+    /* force drawers / collapsibles OPEN for print */
+    .commdrawer{display:block !important;width:auto !important;flex-basis:auto !important}
+    .breakup{max-height:none !important}
+    /* keep each section together, page-break before each section title */
+    .section-title{break-before:page;page-break-before:always}
+    .report{break-after:avoid}
+    .wf-fill,.lffill,.b,.cseg,.vtl-seg{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
 </style>
 </head>
 <body>
+<button class="pdfbtn" onclick="downloadPDF()">⬇ Download PDF</button>
 <header>
+  <div class="printhead">
+    <h2>Settlement Process — Governance Dashboard</h2>
+    <small id="printMeta"></small>
+  </div>
   <h1>Settlement Process — Governance Dashboard</h1>
 
 </header>
@@ -1015,6 +1060,15 @@
     document.querySelectorAll('.logicblock.lit').forEach(function(b){b.classList.remove('lit');});
     if(returnTo){ location.hash=''; document.getElementById(returnTo).scrollIntoView({behavior:'smooth',block:'start'}); }
     else { window.scrollTo({top:0,behavior:'smooth'}); }
+  }
+
+  // ===== Download as PDF (print-optimized) =====
+  function downloadPDF(){
+    var m=document.getElementById('month').value;
+    var vert=document.getElementById('vertical').value, pc=document.getElementById('pcflag').value;
+    var now=new Date().toLocaleString('en-IN');
+    document.getElementById('printMeta').textContent='Cohort month: '+m+'  ·  Vertical: '+vert+'  ·  P/C Flag: '+pc+'  ·  Generated: '+now;
+    window.print(); // choose "Save as PDF" in the print dialog
   }
 
   renderMonth(); // initial paint
