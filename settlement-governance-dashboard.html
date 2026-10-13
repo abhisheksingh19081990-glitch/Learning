@@ -221,17 +221,10 @@
 
     <div class="rvis">
       <div class="vcard">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <h4 class="vhead" style="margin:0">STAGE FLOW <span id="sf_month">(Aug 2026)</span></h4>
-          <div class="toggle">
-            <button class="tg active" data-sfmode="total" onclick="setStageMode('total')">Total</button>
-            <button class="tg" data-sfmode="day" onclick="setStageMode('day')">Day wise</button>
-          </div>
-        </div>
+        <h4 class="vhead">STAGE FLOW <span id="sf_month">(Aug 2026)</span></h4>
         <div class="commwrap">
           <div style="flex:1">
             <div class="lfun" id="stageFlow"></div>
-            <div class="lvbars" id="stageFlowDay" style="display:none;height:150px"></div>
             <div class="tiphint" id="sfTip">👆 Click a stage to see its SMS communication detail →</div>
           </div>
           <div class="commdrawer" id="commDrawer"></div>
@@ -330,25 +323,6 @@
       </tbody>
     </table>
     <div class="why"><b>Why it matters:</b> “Consent sent” is only the headline — these sub-states show <i>where</i> consent gets stuck or rejected (customer vs QC), how much is ageing, and whether the signed consent is filed to DMS for audit.</div>
-  </div>
-
-  <!-- ============ SMS NOT SENT — NUMBER NULL / NOT PRESENT ============ -->
-  <div class="section-title">SMS not sent — number missing / NULL</div>
-  <div class="card" id="chart-smsnull">
-    <h3>SMS that could not be sent because the number was not present
-      <a class="seelogic" href="#logic-smsnull" onclick="goLogic('chart-smsnull')">See logic ▸</a>
-    </h3>
-    <p class="hint">Separates “no number on record” (can’t send) from “number present but send failed” (should investigate). Applies to consent SMS and all informational SMS.</p>
-    <table>
-      <thead><tr><th>SMS event</th><th class="num">Number NULL / missing</th><th class="num">Present but not sent</th><th class="num">Total not sent</th></tr></thead>
-      <tbody>
-        <tr><td>Initiation SMS</td><td class="num">0</td><td class="num">26</td><td class="num">26</td></tr>
-        <tr><td>Consent SMS (applicant only)</td><td class="num">94</td><td class="num">46</td><td class="num">140</td></tr>
-        <tr><td>Approval SMS</td><td class="num">0</td><td class="num">12</td><td class="num">12</td></tr>
-        <tr><td>Closed / void SMS</td><td class="num">40</td><td class="num">4</td><td class="num">44</td></tr>
-      </tbody>
-    </table>
-    <div class="why"><b>Why it matters:</b> “Number NULL” means we physically cannot message that party — a <b>data-capture</b> gap to fix upstream. “Present but not sent” means a valid number existed but the SMS still didn’t go — a <b>send/system</b> failure to investigate. Treating them the same hides the real problem.</div>
   </div>
 
   <!-- ============ DAY-ON-DAY CUMULATIVE (SMS not sent) ============ -->
@@ -587,15 +561,6 @@
     </ul>
   </div>
 
-  <div class="logicblock" id="logic-smsnull">
-    <h3>SMS not sent — number missing vs send failure <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
-    <ul>
-      <li><code>Number NULL / missing</code> = no mobile number on record → the SMS physically cannot be sent (upstream data-capture gap).</li>
-      <li><code>Present but not sent</code> = a valid number existed but the SMS did not go out → a send/system failure to investigate.</li>
-      <li><code>Total not sent = Number NULL + Present-but-not-sent</code>, per SMS event.</li>
-    </ul>
-  </div>
-
   <div class="logicblock" id="logic-cumulative">
     <h3>Day-on-day cumulative <a class="backbtn" href="#" onclick="goBack();return false;">◂ Back</a></h3>
     <ul>
@@ -689,15 +654,16 @@
         sett:{top:500,  app:{noNum:0, notSent:4},  co:{noCo:200, coSame:36, noNum:40, notSent:6}}
       },
       comm:{
-        'Settlement initiated':{sms:true,who:'both',app:1000,coapp:612,total:1612,unique:1398,sent:1372,notsent:26,nsApp:11,nsCo:15},
-        'Consent initiated':{sms:true,who:'applicant',app:1000,coapp:0,unique:1000,sent:860,notsent:140,nsApp:140,nsCo:0,gapVsInit:140},
-        'Settlement approved': {sms:true,who:'both',app:660,coapp:398,total:1058,unique:1046,sent:1034,notsent:12,nsApp:5,nsCo:7},
-        'Settled & closed':    {sms:true,who:'both',app:500,coapp:300,total:800,unique:792,sent:788,notsent:4,nsApp:1,nsCo:3}
+        'Settlement initiated':{sms:true,who:'both',app:1000,coapp:612,total:1612,unique:1398,sent:1372,notsent:26,nsApp:11,nsCo:15,nullApp:0,nullCo:9},
+        'Consent initiated':{sms:true,who:'applicant',app:1000,coapp:0,unique:1000,sent:860,notsent:140,nsApp:140,nsCo:0,nullApp:12,nullCo:0,gapVsInit:140},
+        'Settlement approved': {sms:true,who:'both',app:660,coapp:398,total:1058,unique:1046,sent:1034,notsent:12,nsApp:5,nsCo:7,nullApp:0,nullCo:4},
+        'Settled & closed':    {sms:true,who:'both',app:500,coapp:300,total:800,unique:792,sent:788,notsent:4,nsApp:1,nsCo:3,nullApp:0,nullCo:2}
       },
       // payment & void breakup — must sum to approved (660)
       pv:{paid:500, within90:96, grace:18, voidGenuine:39, voidFalse:7},
       // withdrawals by where they happened + still-in-progress; outcome reconciles to init (1000)
-      wd:{afterInit:40, afterConsent:72, afterReco:8, inProgress:220}
+      wd:{afterInit:40, afterConsent:72, afterReco:8, inProgress:220},
+      autoReject:30
     },
     'Sep 2026':{
       init:1180, cons:1040, consRecd:920, appr:815, sett:640, wd:96, fv:3, fs:6,
@@ -711,15 +677,16 @@
         sett:{top:640,  app:{noNum:0, notSent:2}, co:{noCo:250, coSame:46, noNum:50, notSent:3}}
       },
       comm:{
-        'Settlement initiated':{sms:true,who:'both',app:1180,coapp:720,total:1900,unique:1662,sent:1651,notsent:11,nsApp:5,nsCo:6},
-        'Consent initiated':{sms:true,who:'applicant',app:1180,coapp:0,unique:1180,sent:1040,notsent:140,nsApp:140,nsCo:0,gapVsInit:140},
-        'Settlement approved': {sms:true,who:'both',app:815,coapp:498,total:1313,unique:1301,sent:1298,notsent:3,nsApp:1,nsCo:2},
-        'Settled & closed':    {sms:true,who:'both',app:640,coapp:384,total:1024,unique:1018,sent:1016,notsent:2,nsApp:1,nsCo:1}
+        'Settlement initiated':{sms:true,who:'both',app:1180,coapp:720,total:1900,unique:1662,sent:1651,notsent:11,nsApp:5,nsCo:6,nullApp:0,nullCo:4},
+        'Consent initiated':{sms:true,who:'applicant',app:1180,coapp:0,unique:1180,sent:1040,notsent:140,nsApp:140,nsCo:0,nullApp:10,nullCo:0,gapVsInit:140},
+        'Settlement approved': {sms:true,who:'both',app:815,coapp:498,total:1313,unique:1301,sent:1298,notsent:3,nsApp:1,nsCo:2,nullApp:0,nullCo:1},
+        'Settled & closed':    {sms:true,who:'both',app:640,coapp:384,total:1024,unique:1018,sent:1016,notsent:2,nsApp:1,nsCo:1,nullApp:0,nullCo:1}
       },
       // payment & void breakup — must sum to approved (815)
       pv:{paid:640, within90:120, grace:22, voidGenuine:30, voidFalse:3},
       // outcome reconciles to init (1180): 815 approved + 96 withdrawn + 269 in progress
-      wd:{afterInit:30, afterConsent:58, afterReco:8, inProgress:269}
+      wd:{afterInit:30, afterConsent:58, afterReco:8, inProgress:269},
+      autoReject:20
     },
     'Jul 2026':{
       init:910, cons:742, consRecd:640, appr:548, sett:402, wd:138, fv:11, fs:21,
@@ -733,15 +700,16 @@
         sett:{top:402, app:{noNum:0, notSent:8}, co:{noCo:160, coSame:30, noNum:34, notSent:10}}
       },
       comm:{
-        'Settlement initiated':{sms:true,who:'both',app:910,coapp:560,total:1470,unique:1282,sent:1240,notsent:42,nsApp:18,nsCo:24},
-        'Consent initiated':{sms:true,who:'applicant',app:910,coapp:0,unique:910,sent:742,notsent:168,nsApp:168,nsCo:0,gapVsInit:168},
-        'Settlement approved': {sms:true,who:'both',app:548,coapp:331,total:879,unique:866,sent:839,notsent:27,nsApp:12,nsCo:15},
-        'Settled & closed':    {sms:true,who:'both',app:402,coapp:240,total:642,unique:636,sent:628,notsent:8,nsApp:3,nsCo:5}
+        'Settlement initiated':{sms:true,who:'both',app:910,coapp:560,total:1470,unique:1282,sent:1240,notsent:42,nsApp:18,nsCo:24,nullApp:0,nullCo:14},
+        'Consent initiated':{sms:true,who:'applicant',app:910,coapp:0,unique:910,sent:742,notsent:168,nsApp:168,nsCo:0,nullApp:20,nullCo:0,gapVsInit:168},
+        'Settlement approved': {sms:true,who:'both',app:548,coapp:331,total:879,unique:866,sent:839,notsent:27,nsApp:12,nsCo:15,nullApp:0,nullCo:8},
+        'Settled & closed':    {sms:true,who:'both',app:402,coapp:240,total:642,unique:636,sent:628,notsent:8,nsApp:3,nsCo:5,nullApp:0,nullCo:3}
       },
       // payment & void breakup — must sum to approved (548)
       pv:{paid:402, within90:60, grace:13, voidGenuine:62, voidFalse:11},
       // outcome reconciles to init (910): 548 approved + 138 withdrawn + 224 in progress
-      wd:{afterInit:46, afterConsent:84, afterReco:8, inProgress:224}
+      wd:{afterInit:46, afterConsent:84, afterReco:8, inProgress:224},
+      autoReject:0
     }
   };
   // void-rate month-on-month trend (context series, highlights selected month)
@@ -794,9 +762,10 @@
     var awaitConsent=d.init - d.cons - w.afterInit;
     // between consent initiated -> consent received: not-yet-responded (no withdrawal modelled here)
     var consPending=d.cons - d.consRecd;
-    // between consent received -> approved: withdrawn after consent/reco + in-progress awaiting approval
+    // between consent received -> approved: auto-rejected + withdrawn after consent/reco + in-progress awaiting approval
     var wdPost=w.afterConsent + w.afterReco;
-    var awaitApproval=d.consRecd - d.appr - wdPost;
+    var autoRej=d.autoReject||0;
+    var awaitApproval=d.consRecd - d.appr - wdPost - autoRej;
     // between approved -> settled: not yet settled (in payment window / grace / voided)
     var notSettled=d.appr - d.sett;
     var sr='';
@@ -811,6 +780,7 @@
         '<tr class="wfh-end"><td>= Consent received</td><td class="num">'+fmt(d.consRecd)+'</td></tr>';
     // step 3
     sr+='<tr class="wfh-top"><td>Consent received</td><td class="num">'+fmt(d.consRecd)+'</td></tr>'+
+        '<tr class="wfh-drop"><td>− Settlement auto-rejected</td><td class="num">'+fmt(autoRej)+'</td></tr>'+
         '<tr class="wfh-drop"><td>− Withdrawn after consent / recommendation</td><td class="num">'+fmt(wdPost)+'</td></tr>'+
         '<tr class="wfh-drop"><td>− Awaiting approval (in progress)</td><td class="num">'+fmt(awaitApproval)+'</td></tr>'+
         '<tr class="wfh-end"><td>= Settlement approved</td><td class="num">'+fmt(d.appr)+'</td></tr>';
@@ -818,13 +788,12 @@
     sr+='<tr class="wfh-top"><td>Settlement approved</td><td class="num">'+fmt(d.appr)+'</td></tr>'+
         '<tr class="wfh-drop"><td>− Not yet settled (paying / grace / voided)</td><td class="num">'+fmt(notSettled)+'</td></tr>'+
         '<tr class="wfh-end"><td>= Settled &amp; closed</td><td class="num">'+fmt(d.sett)+'</td></tr>';
-    var tie = (w.afterInit+awaitConsent===d.init-d.cons) && (consPending===d.cons-d.consRecd) && (wdPost+awaitApproval===d.consRecd-d.appr) && (notSettled===d.appr-d.sett);
+    var tie = (w.afterInit+awaitConsent===d.init-d.cons) && (consPending===d.cons-d.consRecd) && (autoRej+wdPost+awaitApproval===d.consRecd-d.appr) && (notSettled===d.appr-d.sett);
     document.getElementById('outcomeTable').innerHTML=
       '<thead><tr><th>Step reconciliation — each stage splits into (next stage + exits)</th><th class="num">Cases</th></tr></thead><tbody>'+sr+
       '<tr class="total"><td>Every stage ties to the one above</td><td class="num">'+(tie?'<span class="tag t-grn">✓ ties</span>':'<span class="tag t-red">⚠ check</span>')+'</td></tr>'+
       '</tbody>';
     setVoid(curMode); // refresh void chart (day view is month-specific)
-    setStageMode(curSFMode); // refresh stage-flow (day view is month-specific)
     setParty(curPStage); // refresh party waterfall
     // day-on-day cumulative — SMS not sent
     document.getElementById('cumMonth').textContent=m;
@@ -912,6 +881,8 @@
         '<div class="crow"><span>Co-applicant</span><b>Not applicable</b></div>'+
         '<div class="crow"><span>Consent SMS sent</span><b>'+fmt(c.sent)+'</b></div>'+
         '<div class="crow"><span>Not sent (applicant)</span><b style="color:#e14b57">'+fmt(c.notsent)+'</b></div>'+
+        '<div class="crow" style="padding-left:14px"><span>↳ number missing / NULL</span><b style="color:#e14b57">'+fmt(c.nullApp)+'</b></div>'+
+        '<div class="crow" style="padding-left:14px"><span>↳ present but not sent</span><b style="color:#e14b57">'+fmt(c.notsent-c.nullApp)+'</b></div>'+
         '<div class="crow"><span>Gap vs initiated</span><b style="color:#e14b57">'+fmt(c.gapVsInit)+'</b></div>'+
         '<span class="cflag cf-bad">'+fmt(c.gapVsInit)+' initiated applicants did not get a consent SMS — investigate</span>';
     } else {
@@ -924,7 +895,10 @@
         '<div class="crow"><span>Not sent — total</span><b style="color:#e14b57">'+fmt(c.notsent)+'</b></div>'+
         '<div class="crow" style="padding-left:14px"><span>↳ not sent to applicant</span><b style="color:#e14b57">'+fmt(c.nsApp)+'</b></div>'+
         '<div class="crow" style="padding-left:14px"><span>↳ not sent to co-applicant</span><b style="color:#e14b57">'+fmt(c.nsCo)+'</b></div>'+
-        '<span class="cflag '+(c.notsent===0?'cf-ok':'cf-bad')+'">Sent '+rate+'% of unique'+(c.notsent>0?' · '+fmt(c.notsent)+' not sent ('+fmt(c.nsApp)+' app / '+fmt(c.nsCo)+' co-app)':' · all sent')+'</span>';
+        '<div class="crow"><span>— of “not sent”, reason split —</span><b></b></div>'+
+        '<div class="crow" style="padding-left:14px"><span>↳ number missing / NULL</span><b style="color:#e14b57">'+fmt((c.nullApp||0)+(c.nullCo||0))+'</b></div>'+
+        '<div class="crow" style="padding-left:14px"><span>↳ present but not sent (send failure)</span><b style="color:#e14b57">'+fmt(c.notsent-((c.nullApp||0)+(c.nullCo||0)))+'</b></div>'+
+        '<span class="cflag '+(c.notsent===0?'cf-ok':'cf-bad')+'">Sent '+rate+'% of unique'+(c.notsent>0?' · '+fmt(c.notsent)+' not sent ('+fmt((c.nullApp||0)+(c.nullCo||0))+' no number / '+fmt(c.notsent-((c.nullApp||0)+(c.nullCo||0)))+' failed)':' · all sent')+'</span>';
     }
     drawer.innerHTML=html; drawer.classList.add('open');
   }
@@ -942,25 +916,6 @@
     }).join('');
     document.getElementById('voidHdr').textContent='VOID RATE — '+(mode==='day'?'DAY WISE ('+m+')':'MONTH WISE');
     document.querySelectorAll('.tg[data-mode]').forEach(function(b){b.classList.toggle('active',b.dataset.mode===mode);});
-  }
-
-  // ===== Stage Flow: total (funnel bars) vs day-wise (initiated per day) =====
-  var curSFMode='total';
-  function setStageMode(mode){
-    curSFMode=mode;
-    var m=document.getElementById('month').value, d=DATA[m];
-    var flow=document.getElementById('stageFlow'), day=document.getElementById('stageFlowDay'), tip=document.getElementById('sfTip');
-    if(mode==='day'){
-      flow.style.display='none'; tip.style.display='none'; day.style.display='flex';
-      var arr=d.stageDay, max=Math.max.apply(null,arr), labels=['1-4','5-8','9-12','13-16','17-20','21-24','25-28','29-31'];
-      day.innerHTML=arr.map(function(v,i){
-        var h=Math.round((v/max)*90)+10;
-        return '<div class="lvbar"><div class="v">'+fmt(v)+'</div><div class="b" style="height:'+h+'%"></div><div class="l">'+labels[i]+'</div></div>';
-      }).join('');
-    } else {
-      flow.style.display='block'; tip.style.display='block'; day.style.display='none';
-    }
-    document.querySelectorAll('.tg[data-sfmode]').forEach(function(b){b.classList.toggle('active',b.dataset.sfmode===mode);});
   }
 
   // ===== Exception resolution prototype (localStorage) =====
